@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Package, Tag, TrendingUp, DollarSign, Loader2 } from 'lucide-react';
 import { formatIDR } from '../lib/utils';
@@ -157,8 +158,8 @@ export const AdminDashboard = () => {
                     <h3 className="font-bold text-slate-900 mb-4 tracking-tight">Quick Actions</h3>
                     <p className="text-sm text-slate-500 mb-6">Manage your core catalogue functions directly from here.</p>
                     <div className="flex gap-4">
-                        <a href="/admin/products" className="flex-1 py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-sm rounded-lg text-center transition-colors">Manage Products</a>
-                        <a href="/admin/programs" className="flex-1 py-2 px-4 bg-pink-50 hover:bg-pink-100 text-pink-700 font-semibold text-sm rounded-lg text-center transition-colors">Manage Programs</a>
+                        <Link to="/admin/products" className="flex-1 py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-sm rounded-lg text-center transition-colors">Manage Products</Link>
+                        <Link to="/admin/programs" className="flex-1 py-2 px-4 bg-pink-50 hover:bg-pink-100 text-pink-700 font-semibold text-sm rounded-lg text-center transition-colors">Manage Programs</Link>
                     </div>
                 </div>
 
