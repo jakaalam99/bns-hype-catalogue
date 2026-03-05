@@ -107,6 +107,12 @@ export const CatalogueLayout = () => {
                         </a>
                     </div>
                 )}
+
+                <div className="p-4 border-t border-slate-100 mt-auto bg-slate-50">
+                    <Link to="/admin" onClick={() => setIsSidebarOpen(false)} className="flex justify-center text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider text-[10px] font-semibold">
+                        Admin Portal
+                    </Link>
+                </div>
             </div>
 
             {/* Premium Minimal Header */}
@@ -136,11 +142,8 @@ export const CatalogueLayout = () => {
                 <Outlet />
             </main>
 
-            <footer className="py-8 flex flex-col items-center gap-3 text-xs sm:text-sm text-slate-400 border-t border-slate-200 mt-auto bg-white">
+            <footer className="py-8 text-center text-xs sm:text-sm text-slate-400 border-t border-slate-200 mt-auto bg-white">
                 <p>&copy; {new Date().getFullYear()} PT. Stakom Trijaya Andala. All rights reserved.</p>
-                <Link to="/admin" className="text-slate-300 hover:text-slate-500 transition-colors uppercase tracking-wider text-[10px] font-semibold">
-                    Admin Portal
-                </Link>
             </footer>
         </div>
     )
