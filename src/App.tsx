@@ -11,6 +11,7 @@ import { ProgramCatalogue } from './pages/ProgramCatalogue'
 import { AdminSettings } from './pages/AdminSettings'
 import { About } from './pages/About'
 import { StoreSettingsProvider } from './features/catalogue/StoreSettingsContext'
+import { PageTracker } from './features/catalogue/PageTracker'
 
 import { AdminDashboard } from './pages/AdminDashboard'
 
@@ -18,6 +19,7 @@ function App() {
   return (
     <StoreSettingsProvider>
       <BrowserRouter>
+        <PageTracker />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<CatalogueLayout />}>
