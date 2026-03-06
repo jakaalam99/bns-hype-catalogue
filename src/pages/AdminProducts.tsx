@@ -36,8 +36,7 @@ export const AdminProducts = () => {
                     *,
                     images:product_images(*)
                 `)
-                .order(sortColumn, { ascending: sortAscending })
-                .limit(200);
+                .order(sortColumn, { ascending: sortAscending });
 
             if (error) throw error;
 
