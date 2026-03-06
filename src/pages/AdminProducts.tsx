@@ -156,14 +156,22 @@ export const AdminProducts = () => {
 
         if (!matchesSearch) return false;
 
-        // Image filter: Using the robust SQL-backed has_images flag
-        const hasImages = (product as any).has_images === true;
+        // Image filter: Ultra-robust check with multiple fallbacks
+        const hasImages =
+            (product as any).has_images === true ||
+            (product.images && Array.isArray(product.images) && product.images.length > 0) ||
+            ((product as any).product_images && Array.isArray((product as any).product_images) && (product as any).product_images.length > 0);
 
         if (imageFilter === 'with_images') return hasImages;
         if (imageFilter === 'no_images') return !hasImages;
 
         return true;
     });
+
+    // Debugging: Log filter counts
+    console.log(`AdminProducts: ${products.length} total, ${filteredProducts.filter(p => {
+        return (p as any).has_images === true || (p.images && p.images.length > 0) || ((p as any).product_images && (p as any).product_images.length > 0);
+    }).length} identified with images.`);
 
     return (
         <div className="space-y-6 animate-fade-in relative z-10">

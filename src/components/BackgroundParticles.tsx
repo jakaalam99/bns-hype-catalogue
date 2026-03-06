@@ -23,9 +23,11 @@ export const BackgroundParticles: React.FC = () => {
     let particles: Particle[] = [];
     let glowOrbs: Particle[] = [];
     let stars: (Particle & { rotation: number, twinkleSpeed: number })[] = [];
+    let triangles: (Particle & { rotation: number, rotSpeed: number })[] = [];
     const particleCount = 40;
     const orbCount = 15;
     const starCount = 20;
+    const triangleCount = 15;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -37,6 +39,7 @@ export const BackgroundParticles: React.FC = () => {
       particles = [];
       glowOrbs = [];
       stars = [];
+      triangles = [];
 
       // Standard sharp particles
       for (let i = 0; i < particleCount; i++) {
@@ -75,6 +78,20 @@ export const BackgroundParticles: React.FC = () => {
           twinkleSpeed: Math.random() * 0.05 + 0.01
         });
       }
+
+      // Geometric Triangles
+      for (let i = 0; i < triangleCount; i++) {
+        triangles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 8 + 4,
+          speedX: (Math.random() - 0.5) * 0.15,
+          speedY: (Math.random() - 0.5) * 0.15,
+          opacity: Math.random() * 0.2 + 0.05,
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.02
+        });
+      }
     };
 
     const animate = () => {
@@ -100,7 +117,7 @@ export const BackgroundParticles: React.FC = () => {
         ctx.fill();
       });
 
-      // 2. Draw Twinkling Stars (middle)
+      // 2. Draw Twinkling Stars
       stars.forEach((s) => {
         s.x += s.speedX;
         s.y += s.speedY;
@@ -120,7 +137,6 @@ export const BackgroundParticles: React.FC = () => {
         ctx.beginPath();
         ctx.strokeStyle = `rgba(255, 255, 255, ${s.opacity * 0.6})`;
         ctx.lineWidth = 1.5;
-        // Draw cross
         ctx.moveTo(-s.size, 0);
         ctx.lineTo(s.size, 0);
         ctx.moveTo(0, -s.size);
@@ -129,7 +145,32 @@ export const BackgroundParticles: React.FC = () => {
         ctx.restore();
       });
 
-      // 3. Draw standard particles (closest)
+      // 3. Draw Geometric Triangles
+      triangles.forEach((t) => {
+        t.x += t.speedX;
+        t.y += t.speedY;
+        t.rotation += t.rotSpeed;
+
+        if (t.x < -t.size) t.x = canvas.width + t.size;
+        if (t.x > canvas.width + t.size) t.x = -t.size;
+        if (t.y < -t.size) t.y = canvas.height + t.size;
+        if (t.y > canvas.height + t.size) t.y = -t.size;
+
+        ctx.save();
+        ctx.translate(t.x, t.y);
+        ctx.rotate(t.rotation);
+        ctx.beginPath();
+        ctx.moveTo(0, -t.size);
+        ctx.lineTo(t.size, t.size);
+        ctx.lineTo(-t.size, t.size);
+        ctx.closePath();
+        ctx.strokeStyle = `rgba(148, 163, 184, ${t.opacity})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // 4. Draw standard particles (closest)
       particles.forEach((p) => {
         p.x += p.speedX;
         p.y += p.speedY;
