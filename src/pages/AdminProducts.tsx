@@ -157,10 +157,8 @@ export const AdminProducts = () => {
 
         if (!matchesSearch) return false;
 
-        // Image filter: Highly robust check
-        // We look for 'images' (alias) or 'product_images' and ensure it's a non-empty array
-        const hasImages = (product.images && Array.isArray(product.images) && product.images.length > 0) ||
-            ((product as any).product_images && Array.isArray((product as any).product_images) && (product as any).product_images.length > 0);
+        // Image filter: Using the robust SQL-backed has_images flag
+        const hasImages = (product as any).has_images === true;
 
         if (imageFilter === 'with_images') return hasImages;
         if (imageFilter === 'no_images') return !hasImages;

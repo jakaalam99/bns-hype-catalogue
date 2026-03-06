@@ -22,8 +22,10 @@ export const BackgroundParticles: React.FC = () => {
     let animationFrameId: number;
     let particles: Particle[] = [];
     let glowOrbs: Particle[] = [];
+    let stars: (Particle & { rotation: number, twinkleSpeed: number })[] = [];
     const particleCount = 40;
     const orbCount = 15;
+    const starCount = 20;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -34,6 +36,7 @@ export const BackgroundParticles: React.FC = () => {
     const initParticles = () => {
       particles = [];
       glowOrbs = [];
+      stars = [];
 
       // Standard sharp particles
       for (let i = 0; i < particleCount; i++) {
@@ -53,9 +56,23 @@ export const BackgroundParticles: React.FC = () => {
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
           size: Math.random() * 100 + 50,
-          speedX: (Math.random() - 0.5) * 0.2,
-          speedY: (Math.random() - 0.5) * 0.2,
+          speedX: (Math.random() - 0.5) * 0.1,
+          speedY: (Math.random() - 0.5) * 0.1,
           opacity: Math.random() * 0.05 + 0.02,
+        });
+      }
+
+      // Twinkling Stars (Cross shape)
+      for (let i = 0; i < starCount; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 3 + 2,
+          speedX: (Math.random() - 0.5) * 0.05,
+          speedY: (Math.random() - 0.5) * 0.05,
+          opacity: Math.random() * 0.8 + 0.2,
+          rotation: Math.random() * Math.PI,
+          twinkleSpeed: Math.random() * 0.05 + 0.01
         });
       }
     };
@@ -63,7 +80,7 @@ export const BackgroundParticles: React.FC = () => {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw Glow Orbs first (background layer)
+      // 1. Draw Glow Orbs (farthest)
       glowOrbs.forEach((orb) => {
         orb.x += orb.speedX;
         orb.y += orb.speedY;
@@ -74,7 +91,7 @@ export const BackgroundParticles: React.FC = () => {
         if (orb.y > canvas.height + orb.size) orb.y = -orb.size;
 
         const gradient = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.size);
-        gradient.addColorStop(0, `rgba(148, 163, 184, ${orb.opacity})`); // slate-400
+        gradient.addColorStop(0, `rgba(148, 163, 184, ${orb.opacity})`);
         gradient.addColorStop(1, 'rgba(148, 163, 184, 0)');
 
         ctx.beginPath();
@@ -83,7 +100,36 @@ export const BackgroundParticles: React.FC = () => {
         ctx.fill();
       });
 
-      // Draw standard particles
+      // 2. Draw Twinkling Stars (middle)
+      stars.forEach((s) => {
+        s.x += s.speedX;
+        s.y += s.speedY;
+        s.rotation += 0.01;
+        s.opacity += Math.sin(Date.now() * s.twinkleSpeed) * 0.02;
+        if (s.opacity < 0.1) s.opacity = 0.1;
+        if (s.opacity > 1) s.opacity = 1;
+
+        if (s.x < 0) s.x = canvas.width;
+        if (s.x > canvas.width) s.x = 0;
+        if (s.y < 0) s.y = canvas.height;
+        if (s.y > canvas.height) s.y = 0;
+
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.rotation);
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(255, 255, 255, ${s.opacity * 0.6})`;
+        ctx.lineWidth = 1.5;
+        // Draw cross
+        ctx.moveTo(-s.size, 0);
+        ctx.lineTo(s.size, 0);
+        ctx.moveTo(0, -s.size);
+        ctx.lineTo(0, s.size);
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // 3. Draw standard particles (closest)
       particles.forEach((p) => {
         p.x += p.speedX;
         p.y += p.speedY;

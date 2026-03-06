@@ -164,7 +164,7 @@ export const CatalogueLayout = () => {
             </header>
 
             {/* Floating Bottom Search Bar */}
-            {!location.pathname.startsWith('/product/') && (
+            {location.pathname === '/' && (
                 <div className="fixed bottom-6 left-0 right-0 z-40 px-4 sm:px-6 pointer-events-none">
                     <div className="max-w-7xl mx-auto flex justify-center">
                         <div className="relative w-full max-w-3xl pointer-events-auto">
