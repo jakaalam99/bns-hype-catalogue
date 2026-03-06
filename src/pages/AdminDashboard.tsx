@@ -133,8 +133,8 @@ export const AdminDashboard = () => {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="animate-spin text-indigo-600 mb-4" size={32} />
-                <p className="text-slate-500 font-medium tracking-tight">Loading analytics...</p>
+                <Loader2 className="animate-spin text-foreground mb-4" size={32} />
+                <p className="text-muted-foreground font-medium tracking-tight">Loading analytics...</p>
             </div>
         );
     }
@@ -148,9 +148,9 @@ export const AdminDashboard = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Total SKUs */}
-                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-indigo-200">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-zinc-400">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-900 flex items-center justify-center">
                             <Package size={20} />
                         </div>
                     </div>
@@ -161,9 +161,9 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* SKUs tied to Programs */}
-                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-pink-200">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-zinc-400">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-900 flex items-center justify-center">
                             <Tag size={20} />
                         </div>
                     </div>
@@ -171,15 +171,15 @@ export const AdminDashboard = () => {
                         <p className="text-sm font-medium text-muted-foreground mb-1">SKUs in Active Programs</p>
                         <div className="flex items-baseline gap-2">
                             <h3 className="text-3xl font-display font-bold text-foreground tracking-tight">{stats.skusInPrograms}</h3>
-                            <span className="text-xs font-semibold text-slate-400 border border-slate-200 rounded px-1.5 py-0.5 uppercase tracking-wider">of {stats.totalSKUs}</span>
+                            <span className="text-xs font-semibold text-zinc-400 border border-zinc-200 rounded px-1.5 py-0.5 uppercase tracking-wider">of {stats.totalSKUs}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Active Programs */}
-                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-emerald-200">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-zinc-400">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-900 flex items-center justify-center">
                             <TrendingUp size={20} />
                         </div>
                     </div>
@@ -190,9 +190,9 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Average Price */}
-                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-blue-200">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-zinc-400">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-900 flex items-center justify-center">
                             <DollarSign size={20} />
                         </div>
                     </div>
@@ -209,9 +209,9 @@ export const AdminDashboard = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* 1 Day Traffic */}
-                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-violet-200">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-zinc-400">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-900 flex items-center justify-center">
                             <Activity size={20} />
                         </div>
                     </div>
@@ -222,9 +222,9 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* 7 Day Traffic */}
-                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-orange-200">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-zinc-400">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-900 flex items-center justify-center">
                             <Users size={20} />
                         </div>
                     </div>
@@ -235,9 +235,9 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* 30 Day Traffic */}
-                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-slate-300">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-zinc-400">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-900 flex items-center justify-center">
                             <Eye size={20} />
                         </div>
                     </div>
@@ -258,14 +258,14 @@ export const AdminDashboard = () => {
                     {topProducts.length > 0 ? (
                         <div className="space-y-3">
                             {topProducts.map((item, index) => (
-                                <Link key={item.url} to={item.url} target="_blank" className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-slate-200 transition-colors group">
+                                <Link key={item.url} to={item.url} target="_blank" className="flex items-center justify-between p-3 bg-zinc-50 border border-zinc-100 rounded-lg hover:bg-zinc-100 transition-colors group">
                                     <div className="flex items-center gap-3 overflow-hidden">
-                                        <div className="w-6 h-6 rounded-full bg-surface shadow-sm flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0 group-hover:scale-110 transition-transform">
+                                        <div className="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-xs font-bold text-zinc-400 shrink-0 group-hover:scale-110 transition-transform">
                                             {index + 1}
                                         </div>
                                         <span className="text-sm font-medium text-foreground truncate">{item.url.replace('/product/', '')}</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md shrink-0">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 bg-zinc-200/50 px-2.5 py-1 rounded-md shrink-0">
                                         <Eye size={14} />
                                         {item.views}
                                     </div>
@@ -283,9 +283,9 @@ export const AdminDashboard = () => {
                     <h3 className="font-display font-bold text-foreground mb-4 tracking-tight">Quick Actions</h3>
                     <p className="text-sm text-muted-foreground mb-6">Manage your core catalogue functions directly from here.</p>
                     <div className="flex flex-col gap-3 font-display">
-                        <Link to="/admin/products" className="py-2.5 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-sm rounded-lg text-center transition-all hover:scale-[1.01] active:scale-95">Manage Products & Inventory</Link>
-                        <Link to="/admin/programs" className="py-2.5 px-4 bg-pink-50 hover:bg-pink-100 text-pink-700 font-semibold text-sm rounded-lg text-center transition-all hover:scale-[1.01] active:scale-95">Manage Discount Programs</Link>
-                        <Link to="/admin/settings" className="py-2.5 px-4 bg-muted hover:bg-slate-200 text-foreground font-semibold text-sm rounded-lg text-center transition-all hover:scale-[1.01] active:scale-95">Configure Store Settings</Link>
+                        <Link to="/admin/products" className="py-2.5 px-4 bg-zinc-900 hover:bg-black text-white font-semibold text-sm rounded-lg text-center transition-all hover:scale-[1.01] active:scale-95">Manage Products & Inventory</Link>
+                        <Link to="/admin/programs" className="py-2.5 px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-200 font-semibold text-sm rounded-lg text-center transition-all hover:scale-[1.01] active:scale-95">Manage Discount Programs</Link>
+                        <Link to="/admin/settings" className="py-2.5 px-4 bg-white hover:bg-zinc-50 text-zinc-600 border border-zinc-200 font-semibold text-sm rounded-lg text-center transition-all hover:scale-[1.01] active:scale-95">Configure Store Settings</Link>
                     </div>
                 </div>
             </div>
