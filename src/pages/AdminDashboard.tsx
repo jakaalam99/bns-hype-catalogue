@@ -105,12 +105,34 @@ export const AdminDashboard = () => {
                 });
             }
 
-            const sortedTopProducts = Array.from(productViews.entries())
-                .map(([url, views]) => ({ url, views }))
-                .sort((a, b) => b.views - a.views)
+            const sortedTopProductsEntries = Array.from(productViews.entries())
+                .sort((a, b) => b[1] - a[1])
                 .slice(0, 5);
 
-            setTopProducts(sortedTopProducts);
+            const enrichedTopProducts = await Promise.all(
+                sortedTopProductsEntries.map(async ([path, views]) => {
+                    const productId = path.replace('/product/', '');
+                    // Fetch product basic info and primary image
+                    const { data: productData } = await supabase
+                        .from('products')
+                        .select(`
+                            id,
+                            sku,
+                            name,
+                            images:product_images(*)
+                        `)
+                        .eq('id', productId)
+                        .single();
+
+                    return {
+                        url: path,
+                        views,
+                        product: productData as any
+                    };
+                })
+            );
+
+            setTopProducts(enrichedTopProducts as any);
 
             setStats({
                 totalSKUs,
@@ -257,20 +279,40 @@ export const AdminDashboard = () => {
                     <p className="text-sm text-muted-foreground mb-6">These are the product item pages receiving the most traffic.</p>
                     {topProducts.length > 0 ? (
                         <div className="space-y-3">
-                            {topProducts.map((item, index) => (
-                                <Link key={item.url} to={item.url} target="_blank" className="flex items-center justify-between p-3 bg-zinc-50 border border-zinc-100 rounded-lg hover:bg-zinc-100 transition-colors group">
-                                    <div className="flex items-center gap-3 overflow-hidden">
-                                        <div className="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-xs font-bold text-zinc-400 shrink-0 group-hover:scale-110 transition-transform">
-                                            {index + 1}
+                            {topProducts.map((item: any, index) => {
+                                const product = item.product;
+                                const primaryImage = product?.images?.find((img: any) => img.display_order === 0) || product?.images?.[0];
+
+                                return (
+                                    <Link key={item.url} to={item.url} target="_blank" className="flex items-center justify-between p-3 bg-zinc-50 border border-zinc-100 rounded-lg hover:bg-zinc-100 transition-colors group">
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <div className="w-10 h-10 rounded-lg bg-white border border-zinc-200 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                                {primaryImage ? (
+                                                    <img
+                                                        src={supabase.storage.from('product-images').getPublicUrl(primaryImage.image_url).data.publicUrl}
+                                                        className="w-full h-full object-cover"
+                                                        alt={product?.name}
+                                                    />
+                                                ) : (
+                                                    <Package size={16} className="text-zinc-300" />
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-sm font-bold text-foreground truncate">
+                                                    {product?.name || 'Unknown Product'}
+                                                </span>
+                                                <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-tight">
+                                                    SKU: {product?.sku || 'N/A'}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <span className="text-sm font-medium text-foreground truncate">{item.url.replace('/product/', '')}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 bg-zinc-200/50 px-2.5 py-1 rounded-md shrink-0">
-                                        <Eye size={14} />
-                                        {item.views}
-                                    </div>
-                                </Link>
-                            ))}
+                                        <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 bg-zinc-200/50 px-2.5 py-1 rounded-md shrink-0">
+                                            <Eye size={14} />
+                                            {item.views}
+                                        </div>
+                                    </Link>
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className="text-center py-8">

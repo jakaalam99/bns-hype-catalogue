@@ -140,7 +140,7 @@ export const CatalogueLayout = () => {
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setIsSidebarOpen(true)}
-                            className="p-2 -ml-2 bg-black text-white hover:bg-zinc-800 rounded-lg transition-colors shadow-md"
+                            className="p-2 -ml-2 bg-transparent text-black hover:bg-black/5 rounded-lg transition-colors"
                         >
                             <Menu size={24} />
                         </button>
@@ -159,14 +159,14 @@ export const CatalogueLayout = () => {
                     </div>
 
                     {/* Right: Search */}
-                    <div className="flex justify-end items-center gap-4">
-                        <div className="relative hidden md:block w-full max-w-[260px]">
+                    <div className="flex justify-end items-center gap-2 sm:gap-4">
+                        <div className="relative w-full max-w-[140px] sm:max-w-[260px]">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search size={16} className="text-zinc-500" />
+                                <Search size={14} className="text-zinc-500 sm:size-4" />
                             </div>
                             <input
                                 type="text"
-                                placeholder="Search catalogue..."
+                                placeholder="Search..."
                                 value={location.pathname === '/' ? new URLSearchParams(location.search).get('q') || '' : ''}
                                 onChange={(e) => {
                                     if (location.pathname === '/') {
@@ -180,7 +180,7 @@ export const CatalogueLayout = () => {
                                         window.location.href = `/?q=${encodeURIComponent(e.target.value)}`;
                                     }
                                 }}
-                                className="block w-full pl-9 pr-4 py-2.5 bg-black border border-white/10 rounded-xl text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all font-medium"
+                                className="block w-full pl-8 sm:pl-9 pr-3 sm:pr-4 py-1.5 sm:py-2.5 bg-black border border-white/10 rounded-lg sm:rounded-xl text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all font-medium"
                             />
                         </div>
                     </div>

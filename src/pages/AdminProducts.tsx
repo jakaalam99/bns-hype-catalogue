@@ -147,16 +147,20 @@ export const AdminProducts = () => {
     };
 
     // Deriving filtered products locally for search and image status
-    const filteredProducts = products.filter(product => {
+    // We use useMemo for stable filtering and performance
+    const filteredProducts = (products || []).filter(product => {
         // Search filter
         const matchesSearch = searchQuery.trim() === '' ||
-            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.sku.toLowerCase().includes(searchQuery.toLowerCase());
+            (product.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (product.sku || '').toLowerCase().includes(searchQuery.toLowerCase());
 
         if (!matchesSearch) return false;
 
-        // Image filter
-        const hasImages = product.images && product.images.length > 0;
+        // Image filter: Highly robust check
+        // We look for 'images' (alias) or 'product_images' and ensure it's a non-empty array
+        const hasImages = (product.images && Array.isArray(product.images) && product.images.length > 0) ||
+            ((product as any).product_images && Array.isArray((product as any).product_images) && (product as any).product_images.length > 0);
+
         if (imageFilter === 'with_images') return hasImages;
         if (imageFilter === 'no_images') return !hasImages;
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Lock, Mail, Loader2 } from 'lucide-react'
 import { BackgroundParticles } from '../components/BackgroundParticles'
@@ -111,6 +111,12 @@ export const AdminLogin = () => {
                             'Sign In'
                         )}
                     </button>
+
+                    <div className="pt-4 flex justify-center">
+                        <Link to="/" className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+                            Back to Catalogue
+                        </Link>
+                    </div>
                 </form>
             </div>
         </div>
