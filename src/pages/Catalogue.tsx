@@ -3,23 +3,62 @@ import { supabase } from '../lib/supabase';
 import type { ProductWithImages } from '../types/product';
 import { Search, SlidersHorizontal, Loader2 } from 'lucide-react';
 import { formatIDR } from '../lib/utils';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 export const Catalogue = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const [products, setProducts] = useState<ProductWithImages[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sortOption, setSortOption] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
+
+    // Filters from URL
+    const searchQuery = searchParams.get('q') || '';
+    const categoryFilter = searchParams.get('category') || '';
+    const brandFilter = searchParams.get('brand') || '';
+    const sortOption = (searchParams.get('sort') as any) || 'newest';
+
+    const setSearchQuery = (val: string) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (val) newParams.set('q', val);
+        else newParams.delete('q');
+        newParams.set('page', '1'); // Reset page on filter change
+        setSearchParams(newParams, { replace: true });
+    };
+
+    const setCategoryFilter = (val: string) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (val) newParams.set('category', val);
+        else newParams.delete('category');
+        newParams.set('page', '1');
+        setSearchParams(newParams, { replace: true });
+    };
+
+    const setBrandFilter = (val: string) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (val) newParams.set('brand', val);
+        else newParams.delete('brand');
+        newParams.set('page', '1');
+        setSearchParams(newParams, { replace: true });
+    };
+
+    const setSortOption = (val: string) => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('sort', val);
+        newParams.set('page', '1');
+        setSearchParams(newParams, { replace: true });
+    };
 
     // Pagination
-    const [page, setPage] = useState(1);
+    const page = parseInt(searchParams.get('page') || '1');
+    const setPage = (p: number) => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('page', p.toString());
+        setSearchParams(newParams, { replace: true });
+    };
+
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const ITEMS_PER_PAGE = 24;
-
-    // Filters
-    const [categoryFilter, setCategoryFilter] = useState('');
-    const [brandFilter, setBrandFilter] = useState('');
 
     // Filter Options
     const [categories, setCategories] = useState<string[]>([]);
@@ -62,13 +101,11 @@ export const Catalogue = () => {
     }, [searchQuery, categoryFilter, brandFilter]);
 
     useEffect(() => {
-        // Reset page and debounce search slightly for better performance
-        setPage(1);
         const timeoutId = setTimeout(() => {
-            fetchProducts(1);
+            fetchProducts(page);
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, sortOption, categoryFilter, brandFilter]);
+    }, [searchQuery, sortOption, categoryFilter, brandFilter, page]);
 
     const fetchProducts = async (pageNumber: number) => {
         if (pageNumber === 1) setLoading(true);
@@ -132,9 +169,7 @@ export const Catalogue = () => {
     };
 
     const handleLoadMore = () => {
-        const nextPage = page + 1;
-        setPage(nextPage);
-        fetchProducts(nextPage);
+        setPage(page + 1);
     };
 
     return (

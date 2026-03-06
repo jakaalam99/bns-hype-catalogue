@@ -6,10 +6,23 @@ import { supabase } from '../../lib/supabase'
 import type { Program } from '../../types/program'
 
 export const CatalogueLayout = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
     const { settings } = useStoreSettings();
     const location = useLocation();
     const [activePrograms, setActivePrograms] = useState<Program[]>([]);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth > 1024) {
+                setIsSidebarOpen(true);
+            } else {
+                setIsSidebarOpen(false);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchPrograms = async () => {
@@ -28,16 +41,16 @@ export const CatalogueLayout = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-background relative selection:bg-black selection:text-white">
-            {/* Sidebar Dark Overlay */}
+            {/* Sidebar Dark Overlay (Mobile Only) */}
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"
+                    className="fixed inset-0 bg-black/20 z-40 lg:hidden transition-opacity"
                     onClick={() => setIsSidebarOpen(false)}
                 />
             )}
 
             {/* Slide-out Sidebar */}
-            <div className={`fixed inset-y-0 left-0 w-[280px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className={`fixed inset-y-0 left-0 w-[280px] bg-white border-r border-border z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="p-6 flex items-center justify-between border-b border-slate-100">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white">
@@ -138,8 +151,10 @@ export const CatalogueLayout = () => {
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
-                <Outlet />
+            <main className={`flex-1 w-full transition-all duration-300 ease-in-out ${isSidebarOpen ? 'lg:pl-[280px]' : 'pl-0'}`}>
+                <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
+                    <Outlet />
+                </div>
             </main>
 
             <footer className="py-8 text-center text-xs sm:text-sm text-muted-foreground border-t border-border mt-auto bg-surface">

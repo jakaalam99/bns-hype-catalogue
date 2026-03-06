@@ -7,10 +7,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#fafafa', // Slightly warmer off-white for premium feel
+        background: '#ffffff', // Pure white background
         foreground: '#09090b', // Deep rich black-gray (zinc-950)
         primary: {
-          DEFAULT: '#000000', // Noir aesthetic fallback
+          DEFAULT: '#18181b', // Zinc 900
           hover: '#27272a', // Zinc 800
         },
         surface: '#ffffff', // Pure white for cards

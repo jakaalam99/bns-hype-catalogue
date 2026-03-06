@@ -4,26 +4,65 @@ import type { ProductWithImages } from '../types/product';
 import type { Program } from '../types/program';
 import { Search, SlidersHorizontal, Loader2, Tag, AlertCircle } from 'lucide-react';
 import { formatIDR } from '../lib/utils';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 export const ProgramCatalogue = () => {
     const { id: programId } = useParams<{ id: string }>();
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const [program, setProgram] = useState<Program | null>(null);
     const [products, setProducts] = useState<ProductWithImages[]>([]);
     const [loading, setLoading] = useState(true);
     const [programLoading, setProgramLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sortOption, setSortOption] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
+
+    // Filters from URL
+    const searchQuery = searchParams.get('q') || '';
+    const categoryFilter = searchParams.get('category') || '';
+    const brandFilter = searchParams.get('brand') || '';
+    const sortOption = (searchParams.get('sort') as any) || 'newest';
+
+    const setSearchQuery = (val: string) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (val) newParams.set('q', val);
+        else newParams.delete('q');
+        newParams.set('page', '1');
+        setSearchParams(newParams, { replace: true });
+    };
+
+    const setCategoryFilter = (val: string) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (val) newParams.set('category', val);
+        else newParams.delete('category');
+        newParams.set('page', '1');
+        setSearchParams(newParams, { replace: true });
+    };
+
+    const setBrandFilter = (val: string) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (val) newParams.set('brand', val);
+        else newParams.delete('brand');
+        newParams.set('page', '1');
+        setSearchParams(newParams, { replace: true });
+    };
+
+    const setSortOption = (val: string) => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('sort', val);
+        newParams.set('page', '1');
+        setSearchParams(newParams, { replace: true });
+    };
 
     // Pagination
-    const [page, setPage] = useState(1);
+    const page = parseInt(searchParams.get('page') || '1');
+    const setPage = (p: number) => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('page', p.toString());
+        setSearchParams(newParams, { replace: true });
+    };
+
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const ITEMS_PER_PAGE = 24;
-
-    // Filters
-    const [categoryFilter, setCategoryFilter] = useState('');
-    const [brandFilter, setBrandFilter] = useState('');
 
     // Filter Options
     const [categories, setCategories] = useState<string[]>([]);
@@ -89,15 +128,13 @@ export const ProgramCatalogue = () => {
     }, [program, searchQuery, categoryFilter, brandFilter]);
 
     useEffect(() => {
-        // Reset page and debounce search slightly for better performance
-        setPage(1);
         const timeoutId = setTimeout(() => {
             if (program) {
-                fetchProducts(1);
+                fetchProducts(page);
             }
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, sortOption, categoryFilter, brandFilter, program]);
+    }, [searchQuery, sortOption, categoryFilter, brandFilter, program, page]);
 
     const fetchProducts = async (pageNumber: number) => {
         if (!program || !program.skus || program.skus.length === 0) {
@@ -167,9 +204,7 @@ export const ProgramCatalogue = () => {
     };
 
     const handleLoadMore = () => {
-        const nextPage = page + 1;
-        setPage(nextPage);
-        fetchProducts(nextPage);
+        setPage(page + 1);
     };
 
     if (programLoading) {
