@@ -16,9 +16,13 @@ export const AdminProducts = () => {
     const [editingProduct, setEditingProduct] = useState<ProductWithImages | null>(null);
     const [programs, setPrograms] = useState<any[]>([]);
 
+    // Sorting
+    const [sortColumn, setSortColumn] = useState<string>('updated_at');
+    const [sortAscending, setSortAscending] = useState<boolean>(false);
+
     useEffect(() => {
         fetchProducts();
-    }, []);
+    }, [sortColumn, sortAscending]);
 
     const fetchProducts = async () => {
         setLoading(true);
@@ -30,7 +34,7 @@ export const AdminProducts = () => {
                     *,
                     images:product_images(*)
                 `)
-                .order('created_at', { ascending: false })
+                .order(sortColumn, { ascending: sortAscending })
                 .limit(200);
 
             if (error) throw error;
@@ -121,8 +125,27 @@ export const AdminProducts = () => {
         XLSX.writeFile(workbook, `bns-products-export-${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
+    const toggleSort = (column: string) => {
+        if (sortColumn === column) {
+            setSortAscending(!sortAscending);
+        } else {
+            setSortColumn(column);
+            setSortAscending(column === 'name' || column === 'sku'); // default asc for text, desc for others
+        }
+    };
+
+    // Helper to render sort arrow
+    const renderSortIcon = (column: string) => {
+        if (sortColumn !== column) return null;
+        return (
+            <span className="ml-1 inline-block">
+                {sortAscending ? '↑' : '↓'}
+            </span>
+        );
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">Products</h1>
@@ -176,10 +199,19 @@ export const AdminProducts = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
-                                <th className="px-6 py-4">Product</th>
-                                <th className="px-6 py-4">SKU</th>
-                                <th className="px-6 py-4">Price</th>
+                            <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold select-none">
+                                <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('name')}>
+                                    Product {renderSortIcon('name')}
+                                </th>
+                                <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('sku')}>
+                                    SKU {renderSortIcon('sku')}
+                                </th>
+                                <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('price')}>
+                                    Price {renderSortIcon('price')}
+                                </th>
+                                <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('updated_at')}>
+                                    Date Modified {renderSortIcon('updated_at')}
+                                </th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
@@ -247,6 +279,13 @@ export const AdminProducts = () => {
                                                 ) : (
                                                     <span className="font-medium text-slate-900">{formatIDR(product.price)}</span>
                                                 )}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-500 whitespace-nowrap">
+                                                {new Date((product as any).updated_at).toLocaleDateString(undefined, {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric'
+                                                })}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">

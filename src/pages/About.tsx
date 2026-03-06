@@ -13,35 +13,35 @@ export const About = () => {
     }
 
     return (
-        <div className="max-w-3xl mx-auto space-y-12 py-8">
+        <div className="max-w-3xl mx-auto space-y-12 py-8 animate-fade-in-up">
             {/* Header Section */}
             <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-slate-900 rounded-2xl mx-auto flex items-center justify-center text-white mb-6">
+                <div className="w-16 h-16 bg-foreground rounded-2xl mx-auto flex items-center justify-center text-background shadow-premium mb-6">
                     <Store size={32} />
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
+                <h1 className="text-4xl sm:text-5xl font-display font-extrabold tracking-tight text-foreground text-balance">
                     About BNS HYPE
                 </h1>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                     {settings?.about_text || 'Premium catalogue for discerning customers.'}
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-slate-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-border">
                 {/* Social Links */}
-                <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100 flex flex-col items-center text-center group hover:border-pink-200 transition-colors">
+                <div className="bg-surface rounded-2xl p-6 sm:p-8 shadow-sm border border-border flex flex-col items-center text-center group hover:border-pink-200 transition-colors hover-card">
                     <div className="w-12 h-12 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Instagram size={24} />
                     </div>
-                    <h3 className="font-bold text-slate-900 text-lg mb-2">Follow Us</h3>
-                    <p className="text-slate-500 text-sm mb-6">Stay updated with our latest drops and behind-the-scenes content on Instagram.</p>
+                    <h3 className="font-display font-bold text-foreground text-lg mb-2">Follow Us</h3>
+                    <p className="text-muted-foreground text-sm mb-6">Stay updated with our latest drops and behind-the-scenes content on Instagram.</p>
 
                     {settings?.instagram_url ? (
                         <a
                             href={settings.instagram_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-auto px-6 py-2.5 bg-slate-900 text-white rounded-xl font-medium text-sm hover:bg-slate-800 transition-colors w-full sm:w-auto"
+                            className="mt-auto px-6 py-2.5 bg-foreground text-background rounded-xl font-medium text-sm hover:bg-zinc-800 transition-colors w-full sm:w-auto hover:shadow-md"
                         >
                             @bnshype
                         </a>
@@ -51,19 +51,19 @@ export const About = () => {
                 </div>
 
                 {/* WhatsApp Contact */}
-                <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100 flex flex-col items-center text-center group hover:border-emerald-200 transition-colors">
+                <div className="bg-surface rounded-2xl p-6 sm:p-8 shadow-sm border border-border flex flex-col items-center text-center group hover:border-emerald-200 transition-colors hover-card">
                     <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" /></svg>
                     </div>
-                    <h3 className="font-bold text-slate-900 text-lg mb-2">WhatsApp</h3>
-                    <p className="text-slate-500 text-sm mb-6">Have questions or want to make a purchase? Reach out to our team directly.</p>
+                    <h3 className="font-display font-bold text-foreground text-lg mb-2">WhatsApp</h3>
+                    <p className="text-muted-foreground text-sm mb-6">Have questions or want to make a purchase? Reach out to our team directly.</p>
 
                     {settings?.whatsapp_number ? (
                         <a
                             href={`https://wa.me/${settings.whatsapp_number.replace(/[^0-9]/g, '')}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-auto px-6 py-2.5 bg-slate-900 text-white rounded-xl font-medium text-sm hover:bg-slate-800 transition-colors w-full sm:w-auto"
+                            className="mt-auto px-6 py-2.5 bg-foreground text-background rounded-xl font-medium text-sm hover:bg-zinc-800 transition-colors w-full sm:w-auto hover:shadow-md"
                         >
                             Chat with Us
                         </a>
@@ -117,17 +117,17 @@ export const About = () => {
 
             {/* Offline Stores Section */}
             {settings?.offline_stores && settings.offline_stores.length > 0 && (
-                <div className="pt-8 border-t border-slate-200">
+                <div className="pt-8 border-t border-border">
                     <div className="flex items-center justify-center gap-3 mb-8">
-                        <MapPin className="text-indigo-600" size={24} />
-                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Visit Our Stores</h2>
+                        <MapPin className="text-foreground" size={24} />
+                        <h2 className="text-2xl font-display font-bold text-foreground tracking-tight">Visit Our Stores</h2>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {settings.offline_stores.map((store: any, index: number) => (
-                            <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col hover:shadow-md transition-shadow">
-                                <h3 className="font-bold text-slate-900 text-lg mb-2">{store.name}</h3>
-                                <p className="text-slate-500 text-sm mb-6 leading-relaxed flex-1">
+                            <div key={index} className="bg-surface p-6 rounded-2xl shadow-sm border border-border flex flex-col transition-all hover-card">
+                                <h3 className="font-display font-bold text-foreground text-lg mb-2">{store.name}</h3>
+                                <p className="text-muted-foreground text-sm mb-6 leading-relaxed flex-1">
                                     {store.address}
                                 </p>
                                 {store.maps_url && (
@@ -135,7 +135,7 @@ export const About = () => {
                                         href={store.maps_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                                        className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-zinc-600 transition-colors"
                                     >
                                         <MapPin size={16} />
                                         Get Directions

@@ -76,8 +76,8 @@ export const CatalogueProduct = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
-            <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 mb-8 transition-colors group">
+        <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in-up">
+            <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-8 transition-colors group">
                 <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                 Back to Catalogue
             </Link>
@@ -139,32 +139,32 @@ export const CatalogueProduct = () => {
                 <div className="flex flex-col">
                     <div className="mb-4 flex flex-wrap gap-2">
                         {product.brand && (
-                            <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-700 font-medium text-xs rounded-md">
+                            <span className="inline-block px-3 py-1 bg-muted text-foreground font-medium text-xs rounded-md">
                                 {product.brand}
                             </span>
                         )}
                         {product.category && (
-                            <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 font-medium text-xs rounded-md">
+                            <span className="inline-block px-3 py-1 bg-muted text-muted-foreground font-medium text-xs rounded-md">
                                 {product.category}
                             </span>
                         )}
-                        <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 font-mono text-xs font-semibold rounded-md tracking-wider">
+                        <span className="inline-block px-3 py-1 bg-muted text-muted-foreground font-mono text-xs font-semibold rounded-md tracking-wider">
                             SKU: {product.sku}
                         </span>
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-4 leading-tight">
+                    <h1 className="text-3xl sm:text-4xl font-display font-extrabold tracking-tight text-foreground mb-4 leading-tight text-balance">
                         {product.name}
                     </h1>
 
-                    <div className="mb-8">
+                    <div className="mb-8 flex items-center gap-4">
                         {product.discount_price ? (
-                            <div className="flex items-center gap-4">
-                                <span className="text-3xl font-bold text-slate-900">{formatIDR(product.discount_price)}</span>
+                            <>
+                                <span className="text-3xl font-display font-bold text-foreground">{formatIDR(product.discount_price)}</span>
                                 <span className="text-xl text-red-500 line-through font-medium">{formatIDR(product.price)}</span>
-                                <span className="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-md">SALE</span>
-                            </div>
+                                <span className="px-2.5 py-1 bg-red-50 text-red-600 text-xs font-bold rounded-md uppercase tracking-wider">Sale</span>
+                            </>
                         ) : (
-                            <span className="text-3xl font-bold text-slate-900">{formatIDR(product.price)}</span>
+                            <span className="text-3xl font-display font-bold text-foreground">{formatIDR(product.price)}</span>
                         )}
                     </div>
 
@@ -185,12 +185,12 @@ export const CatalogueProduct = () => {
                                 href={`https://wa.me/${settings.whatsapp_number.replace(/[^0-9]/g, '')}?text=Hi! I am interested in purchasing ${product.name} (SKU: ${product.sku}). Is it still available?`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-1 bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20 active:scale-[0.98] text-center"
+                                className="flex-1 bg-foreground text-background font-bold py-4 rounded-xl hover:bg-zinc-800 transition shadow-premium hover:-translate-y-1 active:scale-[0.98] text-center"
                             >
                                 Contact to Purchase
                             </a>
                         ) : (
-                            <button disabled className="flex-1 bg-slate-200 text-slate-500 font-bold py-4 rounded-xl cursor-not-allowed">
+                            <button disabled className="flex-1 bg-muted text-muted-foreground font-bold py-4 rounded-xl cursor-not-allowed">
                                 Contact Unavailable
                             </button>
                         )}

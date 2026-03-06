@@ -34,14 +34,14 @@ export const AdminLogin = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <div className="max-w-md w-full glass rounded-2xl p-8 shadow-premium">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 animate-fade-in">
+            <div className="max-w-md w-full glass rounded-2xl p-8 shadow-premium border border-border">
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-slate-900 rounded-2xl mx-auto flex items-center justify-center text-white shadow-lg mb-4">
+                    <div className="w-16 h-16 bg-foreground rounded-2xl mx-auto flex items-center justify-center text-background shadow-lg mb-4">
                         <Lock size={32} />
                     </div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Admin Portal</h1>
-                    <p className="text-sm text-slate-500 mt-2">Sign in to manage the BNS Hype catalogue</p>
+                    <h1 className="text-2xl font-display font-bold tracking-tight text-foreground">Admin Portal</h1>
+                    <p className="text-sm text-muted-foreground mt-2">Sign in to manage the BNS Hype catalogue</p>
                 </div>
 
                 {error && (
@@ -52,11 +52,11 @@ export const AdminLogin = () => {
 
                 <form onSubmit={handleLogin} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="email">
+                        <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="email">
                             Email Address
                         </label>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                                 <Mail size={18} />
                             </div>
                             <input
@@ -65,18 +65,18 @@ export const AdminLogin = () => {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                className="block w-full pl-10 pr-3 py-2.5 bg-surface border border-border rounded-xl text-foreground focus:ring-2 focus:ring-foreground focus:border-foreground transition-shadow outline-none"
                                 placeholder="admin@bnshype.com"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="password">
+                        <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="password">
                             Password
                         </label>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                                 <Lock size={18} />
                             </div>
                             <input
@@ -85,7 +85,7 @@ export const AdminLogin = () => {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                className="block w-full pl-10 pr-3 py-2.5 bg-surface border border-border rounded-xl text-foreground focus:ring-2 focus:ring-foreground focus:border-foreground transition-shadow outline-none"
                                 placeholder="••••••••"
                             />
                         </div>
@@ -94,7 +94,7 @@ export const AdminLogin = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm hover:shadow-premium text-sm font-medium text-background bg-foreground hover:bg-zinc-800 transition-all hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                     >
                         {loading ? (
                             <span className="flex items-center gap-2">

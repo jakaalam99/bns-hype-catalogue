@@ -27,7 +27,7 @@ export const CatalogueLayout = () => {
     }, []);
 
     return (
-        <div className="min-h-screen flex flex-col bg-slate-50/50 relative">
+        <div className="min-h-screen flex flex-col bg-background relative selection:bg-black selection:text-white">
             {/* Sidebar Dark Overlay */}
             {isSidebarOpen && (
                 <div
@@ -116,7 +116,7 @@ export const CatalogueLayout = () => {
             </div>
 
             {/* Premium Minimal Header */}
-            <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md px-4 sm:px-6 py-4 flex items-center justify-between border-b border-slate-100 shadow-sm">
+            <header className="sticky top-0 z-30 glass px-4 sm:px-6 py-4 flex items-center justify-between border-b border-border shadow-sm">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => setIsSidebarOpen(true)}
@@ -130,7 +130,7 @@ export const CatalogueLayout = () => {
                             <ShoppingBag size={20} className="hidden sm:block" />
                         </div>
                         <div>
-                            <h1 className="font-bold text-lg sm:text-xl tracking-tight leading-none text-slate-900">BNS HYPE</h1>
+                            <h1 className="font-display font-bold text-lg sm:text-xl tracking-tight leading-none text-foreground">BNS HYPE</h1>
                             <p className="text-[10px] sm:text-xs text-slate-500 font-medium uppercase tracking-wider">Catalogue</p>
                         </div>
                     </div>
@@ -142,7 +142,7 @@ export const CatalogueLayout = () => {
                 <Outlet />
             </main>
 
-            <footer className="py-8 text-center text-xs sm:text-sm text-slate-400 border-t border-slate-200 mt-auto bg-white">
+            <footer className="py-8 text-center text-xs sm:text-sm text-muted-foreground border-t border-border mt-auto bg-surface">
                 <p>&copy; {new Date().getFullYear()} PT. Stakom Trijaya Andala. All rights reserved.</p>
             </footer>
         </div>

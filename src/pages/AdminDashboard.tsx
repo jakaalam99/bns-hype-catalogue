@@ -140,130 +140,130 @@ export const AdminDashboard = () => {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard Overview</h1>
-                <p className="text-sm text-slate-500">Key performance indicators and catalogue statistics.</p>
+                <h1 className="text-2xl font-display font-bold tracking-tight text-foreground">Dashboard Overview</h1>
+                <p className="text-sm text-muted-foreground">Key performance indicators and catalogue statistics.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Total SKUs */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-indigo-200">
                     <div className="flex items-center justify-between mb-4">
                         <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
                             <Package size={20} />
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 mb-1">Total SKUs</p>
-                        <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{stats.totalSKUs}</h3>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Total SKUs</p>
+                        <h3 className="text-3xl font-display font-bold text-foreground tracking-tight">{stats.totalSKUs}</h3>
                     </div>
                 </div>
 
                 {/* SKUs tied to Programs */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-pink-200">
                     <div className="flex items-center justify-between mb-4">
                         <div className="w-10 h-10 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center">
                             <Tag size={20} />
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 mb-1">SKUs in Active Programs</p>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">SKUs in Active Programs</p>
                         <div className="flex items-baseline gap-2">
-                            <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{stats.skusInPrograms}</h3>
-                            <span className="text-xs font-semibold text-slate-400 uppercase">of {stats.totalSKUs}</span>
+                            <h3 className="text-3xl font-display font-bold text-foreground tracking-tight">{stats.skusInPrograms}</h3>
+                            <span className="text-xs font-semibold text-slate-400 border border-slate-200 rounded px-1.5 py-0.5 uppercase tracking-wider">of {stats.totalSKUs}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Active Programs */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-emerald-200">
                     <div className="flex items-center justify-between mb-4">
                         <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
                             <TrendingUp size={20} />
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 mb-1">Active Programs</p>
-                        <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{stats.activePrograms}</h3>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Active Programs</p>
+                        <h3 className="text-3xl font-display font-bold text-foreground tracking-tight">{stats.activePrograms}</h3>
                     </div>
                 </div>
 
                 {/* Average Price */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-blue-200">
                     <div className="flex items-center justify-between mb-4">
                         <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
                             <DollarSign size={20} />
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 mb-1">Avg. Final Price</p>
-                        <h3 className="text-xl font-bold text-slate-900 tracking-tight">{formatIDR(stats.averageDiscountedPrice)}</h3>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Avg. Final Price</p>
+                        <h3 className="text-xl font-display font-bold text-foreground tracking-tight">{formatIDR(stats.averageDiscountedPrice)}</h3>
                     </div>
                 </div>
             </div>
 
             {/* Traffic Analytics Section */}
             <div>
-                <h2 className="text-xl font-bold tracking-tight text-slate-900 mt-10 mb-4">Traffic Insights</h2>
+                <h2 className="text-xl font-display font-bold tracking-tight text-foreground mt-10 mb-4">Traffic Insights</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* 1 Day Traffic */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-violet-200">
                     <div className="flex items-center justify-between mb-4">
                         <div className="w-10 h-10 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center">
                             <Activity size={20} />
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 mb-1">Visits (Last 24h)</p>
-                        <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{stats.traffic1d}</h3>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Visits (Last 24h)</p>
+                        <h3 className="text-3xl font-display font-bold text-foreground tracking-tight">{stats.traffic1d}</h3>
                     </div>
                 </div>
 
                 {/* 7 Day Traffic */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-orange-200">
                     <div className="flex items-center justify-between mb-4">
                         <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
                             <Users size={20} />
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 mb-1">Visits (Last 7 Days)</p>
-                        <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{stats.traffic7d}</h3>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Visits (Last 7 Days)</p>
+                        <h3 className="text-3xl font-display font-bold text-foreground tracking-tight">{stats.traffic7d}</h3>
                     </div>
                 </div>
 
                 {/* 30 Day Traffic */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col transition-all hover-card hover:border-slate-300">
                     <div className="flex items-center justify-between mb-4">
                         <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center">
                             <Eye size={20} />
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 mb-1">Visits (Last 30 Days)</p>
-                        <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{stats.traffic30d}</h3>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Visits (Last 30 Days)</p>
+                        <h3 className="text-3xl font-display font-bold text-foreground tracking-tight">{stats.traffic30d}</h3>
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                    <h3 className="font-bold text-slate-900 mb-4 tracking-tight flex items-center gap-2">
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm">
+                    <h3 className="font-display font-bold text-foreground mb-4 tracking-tight flex items-center gap-2">
                         <MousePointerClick size={18} className="text-indigo-600" />
                         Most Viewed Products (30 Days)
                     </h3>
-                    <p className="text-sm text-slate-500 mb-6">These are the product item pages receiving the most traffic.</p>
+                    <p className="text-sm text-muted-foreground mb-6">These are the product item pages receiving the most traffic.</p>
                     {topProducts.length > 0 ? (
                         <div className="space-y-3">
                             {topProducts.map((item, index) => (
-                                <Link key={item.url} to={item.url} target="_blank" className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                                <Link key={item.url} to={item.url} target="_blank" className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-slate-200 transition-colors group">
                                     <div className="flex items-center gap-3 overflow-hidden">
-                                        <div className="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-xs font-bold text-slate-400 shrink-0">
+                                        <div className="w-6 h-6 rounded-full bg-surface shadow-sm flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0 group-hover:scale-110 transition-transform">
                                             {index + 1}
                                         </div>
-                                        <span className="text-sm font-medium text-slate-700 truncate">{item.url.replace('/product/', '')}</span>
+                                        <span className="text-sm font-medium text-foreground truncate">{item.url.replace('/product/', '')}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md shrink-0">
                                         <Eye size={14} />
@@ -274,18 +274,18 @@ export const AdminDashboard = () => {
                         </div>
                     ) : (
                         <div className="text-center py-8">
-                            <p className="text-sm text-slate-500">Not enough data to determine top products yet.</p>
+                            <p className="text-sm text-muted-foreground">Not enough data to determine top products yet.</p>
                         </div>
                     )}
                 </div>
 
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                    <h3 className="font-bold text-slate-900 mb-4 tracking-tight">Quick Actions</h3>
-                    <p className="text-sm text-slate-500 mb-6">Manage your core catalogue functions directly from here.</p>
-                    <div className="flex flex-col gap-3">
-                        <Link to="/admin/products" className="py-2.5 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-sm rounded-lg text-center transition-colors">Manage Products & Inventory</Link>
-                        <Link to="/admin/programs" className="py-2.5 px-4 bg-pink-50 hover:bg-pink-100 text-pink-700 font-semibold text-sm rounded-lg text-center transition-colors">Manage Disocunt Programs</Link>
-                        <Link to="/admin/settings" className="py-2.5 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-sm rounded-lg text-center transition-colors">Configure Store Settings</Link>
+                <div className="bg-surface rounded-xl border border-border p-6 shadow-sm">
+                    <h3 className="font-display font-bold text-foreground mb-4 tracking-tight">Quick Actions</h3>
+                    <p className="text-sm text-muted-foreground mb-6">Manage your core catalogue functions directly from here.</p>
+                    <div className="flex flex-col gap-3 font-display">
+                        <Link to="/admin/products" className="py-2.5 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-sm rounded-lg text-center transition-all hover:scale-[1.01] active:scale-95">Manage Products & Inventory</Link>
+                        <Link to="/admin/programs" className="py-2.5 px-4 bg-pink-50 hover:bg-pink-100 text-pink-700 font-semibold text-sm rounded-lg text-center transition-all hover:scale-[1.01] active:scale-95">Manage Discount Programs</Link>
+                        <Link to="/admin/settings" className="py-2.5 px-4 bg-muted hover:bg-slate-200 text-foreground font-semibold text-sm rounded-lg text-center transition-all hover:scale-[1.01] active:scale-95">Configure Store Settings</Link>
                     </div>
                 </div>
             </div>

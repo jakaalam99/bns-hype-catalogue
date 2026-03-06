@@ -4,12 +4,36 @@
 
 @layer base {
   body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-white;
+    @apply bg-background text-foreground font-sans antialiased;
+    /* Custom seamless noise pattern for texture */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.025'/%3E%3C/svg%3E");
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display tracking-tight;
   }
 }
 
 @layer utilities {
   .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-soft;
+    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-glass;
+  }
+
+  .glass-dark {
+    @apply bg-zinc-950/80 backdrop-blur-xl border border-white/10 shadow-glass;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Smooth transitions for hover effects */
+  .hover-card {
+    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-premium;
   }
 }

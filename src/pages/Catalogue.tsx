@@ -11,6 +11,12 @@ export const Catalogue = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortOption, setSortOption] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
 
+    // Pagination
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const ITEMS_PER_PAGE = 24;
+
     // Filters
     const [categoryFilter, setCategoryFilter] = useState('');
     const [brandFilter, setBrandFilter] = useState('');
@@ -43,15 +49,17 @@ export const Catalogue = () => {
     }, []);
 
     useEffect(() => {
-        // Debounce search slightly for better performance
+        // Reset page and debounce search slightly for better performance
+        setPage(1);
         const timeoutId = setTimeout(() => {
-            fetchProducts();
+            fetchProducts(1);
         }, 300);
         return () => clearTimeout(timeoutId);
     }, [searchQuery, sortOption, categoryFilter, brandFilter]);
 
-    const fetchProducts = async () => {
-        setLoading(true);
+    const fetchProducts = async (pageNumber: number) => {
+        if (pageNumber === 1) setLoading(true);
+        else setLoadingMore(true);
         try {
             let query = supabase
                 .from('products')
@@ -87,22 +95,39 @@ export const Catalogue = () => {
                     break;
             }
 
-            // Limit to 48 items to demonstrate pagination/lazy loading framework without overwhelming DOM
-            const { data, error } = await query.limit(48);
+            // Calculate range
+            const from = (pageNumber - 1) * ITEMS_PER_PAGE;
+            const to = from + ITEMS_PER_PAGE - 1;
+
+            const { data, error } = await query.range(from, to);
 
             if (error) throw error;
-            setProducts(data as any);
+
+            if (pageNumber === 1) {
+                setProducts(data as any);
+            } else {
+                setProducts(prev => [...prev, ...(data as any)]);
+            }
+
+            setHasMore(data.length === ITEMS_PER_PAGE);
         } catch (error) {
             console.error('Error fetching public products:', error);
         } finally {
-            setLoading(false);
+            if (pageNumber === 1) setLoading(false);
+            else setLoadingMore(false);
         }
     };
 
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchProducts(nextPage);
+    };
+
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-fade-in">
             {/* Minimalist Header & Controls */}
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white/50 backdrop-blur-sm p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between glass p-4 rounded-2xl border border-border shadow-glass">
                 <div className="relative w-full md:max-w-md">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <Search size={18} className="text-slate-400" />
@@ -173,12 +198,12 @@ export const Catalogue = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-                    {products.map((product) => {
+                    {products.map((product, index) => {
                         const primaryImage = product.images?.find((img: any) => img.display_order === 0) || product.images?.[0];
 
                         return (
-                            <Link key={product.id} to={`/product/${product.id}`} className="group block cursor-pointer">
-                                <div className="aspect-[4/5] bg-slate-100 rounded-2xl overflow-hidden mb-4 relative">
+                            <Link key={product.id} to={`/product/${product.id}`} className="group block cursor-pointer hover-card rounded-2xl p-3 bg-surface border border-transparent hover:border-border" style={{ animationDelay: `${index * 50}ms` }}>
+                                <div className="aspect-[4/5] bg-muted rounded-xl overflow-hidden mb-4 relative">
                                     {primaryImage ? (
                                         <img
                                             src={supabase.storage.from('product-images').getPublicUrl(primaryImage.image_url).data.publicUrl}
@@ -213,7 +238,7 @@ export const Catalogue = () => {
                                             </>
                                         )}
                                     </div>
-                                    <h3 className="font-semibold text-slate-900 text-sm md:text-base leading-tight group-hover:underline underline-offset-4 decoration-slate-300 line-clamp-2">
+                                    <h3 className="font-display font-semibold text-foreground text-sm md:text-base leading-tight group-hover:underline underline-offset-4 decoration-border line-clamp-2">
                                         {product.name}
                                     </h3>
                                     <div className="pt-1 flex items-baseline gap-2">
@@ -233,13 +258,24 @@ export const Catalogue = () => {
                 </div>
             )}
 
-            {/* Pagination Placeholder Message */}
-            {!loading && products.length > 0 && (
-                <div className="py-12 border-t border-slate-100 mt-12 text-center flex flex-col items-center">
-                    <p className="text-sm text-slate-500 mb-6 tracking-wide">Showing 1 - {products.length} Products</p>
-                    <button className="px-8 py-3 bg-white border border-slate-200 shadow-sm text-slate-900 font-bold text-sm tracking-tight rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-colors">
-                        Load More
+            {/* Pagination Load More */}
+            {!loading && products.length > 0 && hasMore && (
+                <div className="py-12 border-t border-border mt-12 text-center flex flex-col items-center">
+                    <p className="text-sm text-muted-foreground mb-6 tracking-wide">Showing {products.length} Products</p>
+                    <button
+                        onClick={handleLoadMore}
+                        disabled={loadingMore}
+                        className="px-8 py-3 bg-foreground border border-border shadow-premium text-background font-bold text-sm tracking-tight rounded-xl hover:bg-zinc-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {loadingMore && <Loader2 size={16} className="animate-spin" />}
+                        {loadingMore ? 'Loading...' : 'Load More'}
                     </button>
+                </div>
+            )}
+
+            {!loading && products.length > 0 && !hasMore && (
+                <div className="py-12 border-t border-border mt-12 text-center">
+                    <p className="text-sm text-muted-foreground font-medium">You've reached the end of the catalogue.</p>
                 </div>
             )}
         </div>
