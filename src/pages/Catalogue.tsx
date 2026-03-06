@@ -174,56 +174,66 @@ export const Catalogue = () => {
 
     return (
         <div className="space-y-8 animate-fade-in">
-            {/* Minimalist Header & Controls */}
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between glass p-4 rounded-2xl border border-border shadow-glass">
+            {/* Minimalist Header & Controls (Dark Monochrome) */}
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between glass-dark p-6 rounded-2xl border border-white/10 shadow-premium relative z-10">
                 <div className="relative w-full md:max-w-md">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Search size={18} className="text-slate-400" />
+                        <Search size={18} className="text-zinc-500" />
                     </div>
                     <input
                         type="text"
                         placeholder="Search by SKU or Product Name..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm"
+                        className="block w-full pl-11 pr-4 py-3 bg-zinc-900 border border-white/5 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all shadow-sm"
                     />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                     {/* Category Filter */}
-                    <select
-                        value={categoryFilter}
-                        onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="w-full md:w-auto appearance-none bg-white border border-slate-200 text-slate-700 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-sm cursor-pointer shadow-sm hover:bg-slate-50 transition-colors"
-                    >
-                        <option value="">All Categories</option>
-                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <div className="relative w-full md:w-auto">
+                        <select
+                            value={categoryFilter}
+                            onChange={(e) => setCategoryFilter(e.target.value)}
+                            className="w-full md:w-auto appearance-none bg-zinc-900 border border-white/5 text-zinc-300 py-3 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 font-medium text-sm cursor-pointer shadow-sm hover:bg-zinc-800 transition-colors"
+                        >
+                            <option value="">All Categories</option>
+                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
+                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                        </div>
+                    </div>
 
                     {/* Brand Filter */}
-                    <select
-                        value={brandFilter}
-                        onChange={(e) => setBrandFilter(e.target.value)}
-                        className="w-full md:w-auto appearance-none bg-white border border-slate-200 text-slate-700 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-sm cursor-pointer shadow-sm hover:bg-slate-50 transition-colors"
-                    >
-                        <option value="">All Brands</option>
-                        {brands.map(b => <option key={b} value={b}>{b}</option>)}
-                    </select>
+                    <div className="relative w-full md:w-auto">
+                        <select
+                            value={brandFilter}
+                            onChange={(e) => setBrandFilter(e.target.value)}
+                            className="w-full md:w-auto appearance-none bg-zinc-900 border border-white/5 text-zinc-300 py-3 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 font-medium text-sm cursor-pointer shadow-sm hover:bg-zinc-800 transition-colors"
+                        >
+                            <option value="">All Brands</option>
+                            {brands.map(b => <option key={b} value={b}>{b}</option>)}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
+                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                        </div>
+                    </div>
 
                     <div className="relative w-full md:w-auto flex items-center">
-                        <div className="absolute left-3 pointer-events-none text-slate-500">
+                        <div className="absolute left-3 pointer-events-none text-zinc-500">
                             <SlidersHorizontal size={16} />
                         </div>
                         <select
                             value={sortOption}
                             onChange={(e) => setSortOption(e.target.value as any)}
-                            className="w-full md:w-auto appearance-none bg-white border border-slate-200 text-slate-700 py-3 pl-10 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-sm cursor-pointer shadow-sm hover:bg-slate-50 transition-colors"
+                            className="w-full md:w-auto appearance-none bg-zinc-900 border border-white/5 text-zinc-300 py-3 pl-10 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 font-medium text-sm cursor-pointer shadow-sm hover:bg-zinc-800 transition-colors"
                         >
                             <option value="newest">Newest Arrivals</option>
                             <option value="price_asc">Price: Low to High</option>
                             <option value="price_desc">Price: High to Low</option>
                         </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
                             <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
                         </div>
                     </div>

@@ -41,6 +41,8 @@ export const CatalogueLayout = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-background relative selection:bg-black selection:text-white">
+            {/* Animated Grid Background */}
+            <div className="fixed inset-0 pointer-events-none z-0 bg-grid-pattern opacity-50" />
             {/* Sidebar Dark Overlay (Mobile Only) */}
             {isSidebarOpen && (
                 <div
@@ -50,17 +52,17 @@ export const CatalogueLayout = () => {
             )}
 
             {/* Slide-out Sidebar */}
-            <div className={`fixed inset-y-0 left-0 w-[280px] bg-white border-r border-border z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="p-6 flex items-center justify-between border-b border-slate-100">
+            <div className={`fixed inset-y-0 left-0 w-[280px] bg-zinc-950 border-r border-white/5 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="p-6 flex items-center justify-between border-b border-white/5">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white">
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-zinc-950">
                             <ShoppingBag size={14} />
                         </div>
-                        <span className="font-bold text-lg tracking-tight">Menu</span>
+                        <span className="font-bold text-lg tracking-tight text-white uppercase italic">Menu</span>
                     </div>
                     <button
                         onClick={() => setIsSidebarOpen(false)}
-                        className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
+                        className="p-2 text-zinc-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -70,7 +72,7 @@ export const CatalogueLayout = () => {
                     <Link
                         to="/"
                         onClick={() => setIsSidebarOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${location.pathname === '/' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${location.pathname === '/' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
                     >
                         <Home size={18} />
                         Catalogue
@@ -78,7 +80,7 @@ export const CatalogueLayout = () => {
                     <Link
                         to="/about"
                         onClick={() => setIsSidebarOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${location.pathname === '/about' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${location.pathname === '/about' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
                     >
                         <Info size={18} />
                         About Us
@@ -86,7 +88,7 @@ export const CatalogueLayout = () => {
 
                     {activePrograms.length > 0 && (
                         <div className="pt-4 pb-2">
-                            <h3 className="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <h3 className="px-4 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                                 <Tag size={12} />
                                 Programs
                             </h3>
@@ -96,7 +98,7 @@ export const CatalogueLayout = () => {
                                         key={program.id}
                                         to={`/program/${program.id}`}
                                         onClick={() => setIsSidebarOpen(false)}
-                                        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${location.pathname === `/program/${program.id}` ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 pl-8'}`}
+                                        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${location.pathname === `/program/${program.id}` ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:bg-white/5 hover:text-white pl-8'}`}
                                     >
                                         {program.name}
                                     </Link>
@@ -107,22 +109,22 @@ export const CatalogueLayout = () => {
                 </div>
 
                 {settings?.instagram_url && (
-                    <div className="p-6 border-t border-slate-100">
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Connect With Us</p>
+                    <div className="p-6 border-t border-white/5">
+                        <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-3">Instagram</p>
                         <a
                             href={settings.instagram_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-3 px-4 py-3 bg-pink-50 text-pink-600 hover:bg-pink-100 hover:text-pink-700 rounded-xl font-medium transition-colors"
+                            className="flex items-center gap-3 px-4 py-3 bg-white/5 text-white hover:bg-white/10 rounded-xl font-medium transition-all group"
                         >
-                            <Instagram size={18} />
-                            Instagram
+                            <Instagram size={18} className="group-hover:scale-110 transition-transform" />
+                            @bnshype
                         </a>
                     </div>
                 )}
 
-                <div className="p-4 border-t border-slate-100 mt-auto bg-slate-50">
-                    <Link to="/admin" onClick={() => setIsSidebarOpen(false)} className="flex justify-center text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider text-[10px] font-semibold">
+                <div className="p-4 border-t border-white/5 mt-auto bg-black/20">
+                    <Link to="/admin" onClick={() => setIsSidebarOpen(false)} className="flex justify-center text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-widest text-[9px] font-bold">
                         Admin Portal
                     </Link>
                 </div>

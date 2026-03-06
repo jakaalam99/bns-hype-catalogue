@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { ProductWithImages } from '../types/product';
 import { formatIDR } from '../lib/utils';
@@ -8,6 +8,7 @@ import { useStoreSettings } from '../features/catalogue/StoreSettingsContext';
 
 export const CatalogueProduct = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const { settings } = useStoreSettings();
     const [product, setProduct] = useState<ProductWithImages | null>(null);
     const [loading, setLoading] = useState(true);
@@ -68,19 +69,25 @@ export const CatalogueProduct = () => {
             <div className="text-center py-20">
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">Product Not Found</h2>
                 <p className="text-slate-500 mb-6">The product you are looking for does not exist.</p>
-                <Link to="/" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition"
+                >
                     <ArrowLeft size={16} /> Back to Catalogue
-                </Link>
+                </button>
             </div>
         );
     }
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in-up">
-            <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-8 transition-colors group">
+            <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-8 transition-colors group"
+            >
                 <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                 Back to Catalogue
-            </Link>
+            </button>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 {/* Image Gallery */}
