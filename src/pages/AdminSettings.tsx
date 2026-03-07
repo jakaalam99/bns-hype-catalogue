@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Loader2, Save, Store, Instagram, Phone, MapPin, Plus, Trash2, Link as LinkIcon, ShoppingBag, Music } from 'lucide-react';
 import type { StoreSettings } from '../types/settings';
+import { useStoreSettings } from '../features/catalogue/StoreSettingsContext';
 
 export const AdminSettings = () => {
+    const { refreshSettings } = useStoreSettings();
     const [settings, setSettings] = useState<StoreSettings | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -61,6 +63,7 @@ export const AdminSettings = () => {
                 .eq('id', 1);
 
             if (updateError) throw updateError;
+            await refreshSettings();
             setSuccess(true);
 
             // Hide success message after 3 seconds
