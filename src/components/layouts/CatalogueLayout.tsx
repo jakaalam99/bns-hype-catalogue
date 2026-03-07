@@ -157,11 +157,13 @@ export const CatalogueLayout = () => {
                     </div>
                 )}
 
-                <div className="p-4 border-t border-white/5 mt-auto bg-black/20">
-                    <Link to="/admin" onClick={() => setIsSidebarOpen(false)} className="flex justify-center text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-widest text-[9px] font-bold">
-                        Partner Portal
-                    </Link>
-                </div>
+                {!user && (
+                    <div className="p-4 border-t border-white/5 mt-auto bg-black/20">
+                        <Link to="/admin" onClick={() => setIsSidebarOpen(false)} className="flex justify-center text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-widest text-[9px] font-bold">
+                            Partner Portal
+                        </Link>
+                    </div>
+                )}
             </div>
 
             {/* Premium Minimal Header */}

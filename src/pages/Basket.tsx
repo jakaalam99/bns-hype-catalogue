@@ -89,7 +89,7 @@ export const Basket = () => {
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:40px_40px]" />
             <BackgroundParticles count={20} />
 
-            <div className="relative z-10 max-w-6xl mx-auto px-4 py-8 animate-fade-in-up">
+            <div className="relative z-10 max-w-[1440px] mx-auto px-4 py-8 animate-fade-in-up">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
                     <div className="space-y-2">
