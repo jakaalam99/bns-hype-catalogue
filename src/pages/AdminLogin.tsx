@@ -26,8 +26,15 @@ export const AdminLogin = () => {
 
             if (error) throw error
 
-            // Successfully logged in
-            navigate('/admin/dashboard', { replace: true })
+            // Successfully logged in - Check role for redirection
+            const { data: { user } } = await supabase.auth.getUser()
+            const role = user?.user_metadata?.role
+
+            if (role === 'putus') {
+                navigate('/', { replace: true })
+            } else {
+                navigate('/admin/dashboard', { replace: true })
+            }
         } catch (err: any) {
             setError(err.message || "Failed to authenticate.")
         } finally {

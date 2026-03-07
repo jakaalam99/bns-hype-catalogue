@@ -53,6 +53,10 @@ export const PublicRoute = () => {
 
     // If logged in, don't let them see the login page again
     if (session) {
+        const userRole = session.user?.user_metadata?.role;
+        if (userRole === 'putus') {
+            return <Navigate to="/" replace />
+        }
         return <Navigate to="/admin/dashboard" replace />
     }
 
