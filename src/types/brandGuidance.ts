@@ -11,6 +11,7 @@ export interface BrandGuidanceFile {
     brand_id: string;
     file_name: string;
     file_path: string;
+    thumbnail_path?: string;
     display_order: number;
     created_at: string;
 }

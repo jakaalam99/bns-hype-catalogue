@@ -101,13 +101,14 @@ export const AdminBrandGuidance = () => {
         }
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isThumbnail: boolean = false, existingFileId?: string) => {
         if (!selectedBrand || !e.target.files || e.target.files.length === 0) return;
 
         setUploading(true);
         const file = e.target.files[0];
         const fileExt = file.name.split('.').pop();
-        const fileName = `${selectedBrand.id}/${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const folder = isThumbnail ? 'thumbnails' : 'docs';
+        const fileName = `${selectedBrand.id}/${folder}/${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `${fileName}`;
 
         try {
@@ -118,31 +119,48 @@ export const AdminBrandGuidance = () => {
 
             if (uploadError) throw uploadError;
 
-            // 2. Add to Database
-            const { data, error: dbError } = await supabase
-                .from('brand_guidance_files')
-                .insert([{
-                    brand_id: selectedBrand.id,
-                    file_name: file.name,
-                    file_path: filePath,
-                    display_order: (selectedBrand.files?.length || 0)
-                }])
-                .select()
+            if (isThumbnail && existingFileId) {
+                // Update existing record with thumbnail
+                const { error: dbError } = await supabase
+                    .from('brand_guidance_files')
+                    .update({ thumbnail_path: filePath })
+                    .eq('id', existingFileId);
+
+                if (dbError) throw dbError;
+            } else if (!isThumbnail) {
+                // 2. Add to Database as new file
+                const { data, error: dbError } = await supabase
+                    .from('brand_guidance_files')
+                    .insert([{
+                        brand_id: selectedBrand.id,
+                        file_name: file.name,
+                        file_path: filePath,
+                        display_order: (selectedBrand.files?.length || 0)
+                    }])
+                    .select()
+                    .single();
+
+                if (dbError) throw dbError;
+
+                // Update local state for brand list
+                setBrands(brands.map(b => {
+                    if (b.id === selectedBrand.id) {
+                        return { ...b, files: [...(b.files || []), data] };
+                    }
+                    return b;
+                }));
+            }
+
+            // Refresh selected brand
+            const { data: updatedBrand, error: refreshError } = await supabase
+                .from('brand_guidance')
+                .select('*, files:brand_guidance_files(*)')
+                .eq('id', selectedBrand.id)
                 .single();
 
-            if (dbError) throw dbError;
+            if (refreshError) throw refreshError;
+            setSelectedBrand(updatedBrand);
 
-            // Update local state
-            const updatedBrands = brands.map(b => {
-                if (b.id === selectedBrand.id) {
-                    const newFiles = [...(b.files || []), data];
-                    const updatedBrand = { ...b, files: newFiles };
-                    if (selectedBrand.id === b.id) setSelectedBrand(updatedBrand);
-                    return updatedBrand;
-                }
-                return b;
-            });
-            setBrands(updatedBrands);
         } catch (error) {
             console.error('Error uploading file:', error);
             alert('Failed to upload file');
@@ -156,9 +174,12 @@ export const AdminBrandGuidance = () => {
 
         try {
             // 1. Delete from Storage
+            const filesToRemove = [file.file_path];
+            if (file.thumbnail_path) filesToRemove.push(file.thumbnail_path);
+
             await supabase.storage
                 .from('brand-guidance')
-                .remove([file.file_path]);
+                .remove(filesToRemove);
 
             // 2. Delete from Database
             await supabase
@@ -335,10 +356,28 @@ export const AdminBrandGuidance = () => {
                                         {selectedBrand.files.sort((a, b) => a.display_order - b.display_order).map((file) => (
                                             <div
                                                 key={file.id}
-                                                className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-start gap-4"
+                                                className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-start gap-4 group"
                                             >
-                                                <div className="p-2 bg-white rounded-lg border border-slate-100 text-slate-400">
-                                                    <FileText size={20} />
+                                                <div className="relative w-20 h-20 bg-white rounded-lg border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center text-slate-300">
+                                                    {file.thumbnail_path ? (
+                                                        <img
+                                                            src={supabase.storage.from('brand-guidance').getPublicUrl(file.thumbnail_path).data.publicUrl}
+                                                            alt=""
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <FileText size={20} />
+                                                    )}
+                                                    <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-[8px] text-white font-black uppercase cursor-pointer">
+                                                        <Upload size={12} className="mb-1" />
+                                                        {file.thumbnail_path ? 'Change Image' : 'Add Image'}
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={(e) => handleFileUpload(e, true, file.id)}
+                                                        />
+                                                    </label>
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-bold text-slate-900 truncate" title={file.file_name}>

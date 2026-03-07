@@ -107,17 +107,26 @@ export const BrandGuidance = () => {
                                                     className="group flex flex-col p-6 rounded-2xl bg-surface/50 border border-border hover:border-zinc-400 transition-all hover:translate-y-[-2px] hover:shadow-lg"
                                                 >
                                                     <div className="flex items-start justify-between mb-4">
-                                                        <div className="p-3 bg-zinc-100 rounded-xl text-zinc-900">
-                                                            <FileText size={24} />
+                                                        <div className="w-full h-32 bg-zinc-100 rounded-xl overflow-hidden border border-border flex items-center justify-center text-zinc-400 group-hover:border-blue-400 transition-colors relative">
+                                                            {file.thumbnail_path ? (
+                                                                <img
+                                                                    src={supabase.storage.from('brand-guidance').getPublicUrl(file.thumbnail_path).data.publicUrl}
+                                                                    alt=""
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <FileText size={32} />
+                                                            )}
+                                                            <a
+                                                                href={supabase.storage.from('brand-guidance').getPublicUrl(file.file_path).data.publicUrl}
+                                                                download={file.file_name}
+                                                                className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur-sm rounded-lg text-blue-600 hover:text-black transition-colors shadow-sm"
+                                                                title="Download File"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <Download size={18} />
+                                                            </a>
                                                         </div>
-                                                        <a
-                                                            href={supabase.storage.from('brand-guidance').getPublicUrl(file.file_path).data.publicUrl}
-                                                            download={file.file_name}
-                                                            className="p-2 text-zinc-400 hover:text-foreground transition-colors"
-                                                            title="Download File"
-                                                        >
-                                                            <Download size={20} />
-                                                        </a>
                                                     </div>
                                                     <h4 className="font-bold text-foreground mb-4 line-clamp-2">{file.file_name}</h4>
                                                     <a
