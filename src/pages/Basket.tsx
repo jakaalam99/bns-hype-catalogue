@@ -72,7 +72,7 @@ export const Basket = () => {
                     <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-8 text-slate-200 shadow-sm border border-slate-100">
                         <ShoppingCart size={48} />
                     </div>
-                    <h2 className="text-3xl font-display font-black text-slate-900 mb-4 tracking-tight uppercase italic">Your Basket is Empty</h2>
+                    <h2 className="text-3xl font-display font-black text-slate-900 mb-4 tracking-tight uppercase">Your Basket is Empty</h2>
                     <p className="text-slate-500 mb-10 max-w-md mx-auto font-medium">Browse our collection and add items to your list.</p>
                     <Link
                         to="/"
@@ -100,10 +100,10 @@ export const Basket = () => {
                             <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center text-white">
                                 <ShoppingCart size={20} />
                             </div>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Customer Order</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Product Selection</span>
                         </div>
-                        <h1 className="text-5xl font-display font-black text-slate-900 uppercase italic tracking-tighter">
-                            My <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">Basket</span>
+                        <h1 className="text-5xl font-display font-black text-slate-900 uppercase tracking-tighter">
+                            My <span className="text-black">Basket</span>
                         </h1>
                         <p className="text-slate-500 font-bold tracking-widest uppercase text-[10px] flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -147,11 +147,11 @@ export const Basket = () => {
                 <div className="hidden md:block bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50/80 border-b border-slate-200">
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Item Details</th>
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">Reference</th>
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">Order Qty</th>
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-right">Delete</th>
+                            <tr className="bg-black border-b border-black">
+                                <th className="px-8 py-6 text-[10px] font-black text-white uppercase tracking-[0.3em]">Item Details</th>
+                                <th className="px-8 py-6 text-[10px] font-black text-white uppercase tracking-[0.3em] text-center">Reference</th>
+                                <th className="px-8 py-6 text-[10px] font-black text-white uppercase tracking-[0.3em] text-center">Quantity</th>
+                                <th className="px-8 py-6 text-[10px] font-black text-white uppercase tracking-[0.3em] text-right">Delete</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
