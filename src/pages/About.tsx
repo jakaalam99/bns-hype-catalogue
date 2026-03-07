@@ -13,7 +13,7 @@ export const About = () => {
     }
 
     return (
-        <div className="max-w-3xl mx-auto space-y-12 py-8 animate-fade-in-up">
+        <div className="max-w-5xl mx-auto space-y-12 py-8 animate-fade-in-up">
             {/* Header Section */}
             <div className="text-center space-y-4">
                 <div className="w-16 h-16 bg-foreground rounded-2xl mx-auto flex items-center justify-center text-background shadow-premium mb-6">
@@ -27,7 +27,7 @@ export const About = () => {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-border">
                 {/* Social Links */}
                 <div className="bg-surface rounded-2xl p-6 sm:p-8 shadow-sm border border-border flex flex-col items-center text-center group hover:border-pink-200 transition-colors hover-card">
                     <div className="w-12 h-12 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -69,6 +69,30 @@ export const About = () => {
                         </a>
                     ) : (
                         <span className="mt-auto text-sm font-medium text-slate-400">Number coming soon</span>
+                    )}
+                </div>
+
+                {/* TikTok Card */}
+                <div className="bg-surface rounded-2xl p-6 sm:p-8 shadow-sm border border-border flex flex-col items-center text-center group hover:border-cyan-200 transition-colors hover-card">
+                    <div className="w-12 h-12 bg-zinc-900 text-white rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.59-1.01V15.5c0 1.28-.18 2.56-.7 3.71-.9 2.02-2.91 3.49-5.12 3.73-2.25.27-4.64-.51-6.04-2.32-1.28-1.61-1.59-3.87-.83-5.78.8-2.01 2.87-3.4 5.01-3.66.19-.03.38-.04.58-.04v4.05c-1.1.09-2.18.59-2.76 1.52-.58.91-.65 2.1-.19 3.03.46.99 1.48 1.68 2.58 1.7.53.01 1.05-.1 1.53-.32.74-.33 1.23-1.01 1.34-1.8.04-.26.04-.52.04-.78V.02z" />
+                        </svg>
+                    </div>
+                    <h3 className="font-display font-bold text-foreground text-lg mb-2">TikTok</h3>
+                    <p className="text-muted-foreground text-sm mb-6">Experience our products in motion. Get exclusive looks at our latest stock.</p>
+
+                    {settings?.tiktok_url ? (
+                        <a
+                            href={settings.tiktok_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-auto px-6 py-2.5 bg-foreground text-background rounded-xl font-medium text-sm hover:bg-zinc-800 transition-colors w-full sm:w-auto hover:shadow-md"
+                        >
+                            @bnshype
+                        </a>
+                    ) : (
+                        <span className="mt-auto text-sm font-medium text-slate-400">Link coming soon</span>
                     )}
                 </div>
             </div>

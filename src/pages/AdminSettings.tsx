@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Loader2, Save, Store, Instagram, Phone, MapPin, Plus, Trash2, Link as LinkIcon, ShoppingBag } from 'lucide-react';
+import { Loader2, Save, Store, Instagram, Phone, MapPin, Plus, Trash2, Link as LinkIcon, ShoppingBag, Music } from 'lucide-react';
 import type { StoreSettings } from '../types/settings';
 
 export const AdminSettings = () => {
@@ -47,6 +47,7 @@ export const AdminSettings = () => {
                 .update({
                     about_text: settings.about_text,
                     instagram_url: settings.instagram_url,
+                    tiktok_url: settings.tiktok_url,
                     whatsapp_number: settings.whatsapp_number,
                     offline_stores: settings.offline_stores,
                     social_links: settings.social_links,
@@ -200,6 +201,19 @@ export const AdminSettings = () => {
                                 onChange={(e) => setSettings({ ...settings, instagram_url: e.target.value })}
                                 className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                 placeholder="https://instagram.com/bnshype"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-2">
+                                <Music size={14} className="text-slate-400" />
+                                TikTok URL
+                            </label>
+                            <input
+                                type="url"
+                                value={settings.tiktok_url || ''}
+                                onChange={(e) => setSettings({ ...settings, tiktok_url: e.target.value })}
+                                className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                placeholder="https://tiktok.com/@bnshype"
                             />
                         </div>
                         <div>

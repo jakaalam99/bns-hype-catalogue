@@ -31,6 +31,7 @@ export const StoreSettingsProvider = ({ children }: { children: ReactNode }) => 
                         id: 1,
                         about_text: 'Welcome to BNS HYPE',
                         instagram_url: '',
+                        tiktok_url: '',
                         whatsapp_number: '',
                         offline_stores: [],
                         social_links: [],
