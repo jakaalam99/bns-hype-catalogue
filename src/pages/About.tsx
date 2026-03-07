@@ -34,20 +34,26 @@ export const About = () => {
                         <Instagram size={24} />
                     </div>
                     <h3 className="font-display font-bold text-foreground text-lg mb-2">Follow Us</h3>
-                    <p className="text-muted-foreground text-sm mb-6">Stay updated with our latest drops and behind-the-scenes content on Instagram.</p>
+                    <p className="text-muted-foreground text-sm mb-6">Stay updated with our latest drops and content on Instagram.</p>
 
-                    {settings?.instagram_url ? (
-                        <a
-                            href={settings.instagram_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-auto px-6 py-2.5 bg-foreground text-background rounded-xl font-medium text-sm hover:bg-zinc-800 transition-colors w-full sm:w-auto hover:shadow-md"
-                        >
-                            @bnshype
-                        </a>
-                    ) : (
-                        <span className="mt-auto text-sm font-medium text-slate-400">Link coming soon</span>
-                    )}
+                    <div className="w-full space-y-2 mt-auto">
+                        {settings?.instagram_links && settings.instagram_links.length > 0 ? (
+                            settings.instagram_links.map((link, idx) => (
+                                <a
+                                    key={idx}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-foreground text-background rounded-xl font-medium text-sm hover:bg-zinc-800 transition-colors w-full hover:shadow-md"
+                                >
+                                    <Instagram size={14} />
+                                    {link.label || '@bnshype'}
+                                </a>
+                            ))
+                        ) : (
+                            <span className="text-sm font-medium text-slate-400">Links coming soon</span>
+                        )}
+                    </div>
                 </div>
 
                 {/* WhatsApp Contact */}
@@ -58,18 +64,23 @@ export const About = () => {
                     <h3 className="font-display font-bold text-foreground text-lg mb-2">WhatsApp</h3>
                     <p className="text-muted-foreground text-sm mb-6">Have questions or want to make a purchase? Reach out to our team directly.</p>
 
-                    {settings?.whatsapp_number ? (
-                        <a
-                            href={`https://wa.me/${settings.whatsapp_number.replace(/[^0-9]/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-auto px-6 py-2.5 bg-foreground text-background rounded-xl font-medium text-sm hover:bg-zinc-800 transition-colors w-full sm:w-auto hover:shadow-md"
-                        >
-                            Chat with Us
-                        </a>
-                    ) : (
-                        <span className="mt-auto text-sm font-medium text-slate-400">Number coming soon</span>
-                    )}
+                    <div className="w-full space-y-2 mt-auto">
+                        {settings?.whatsapp_links && settings.whatsapp_links.length > 0 ? (
+                            settings.whatsapp_links.map((link, idx) => (
+                                <a
+                                    key={idx}
+                                    href={`https://wa.me/${link.number?.replace(/[^0-9]/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-foreground text-background rounded-xl font-medium text-sm hover:bg-zinc-800 transition-colors w-full hover:shadow-md"
+                                >
+                                    Chat: {link.label || 'Contact Us'}
+                                </a>
+                            ))
+                        ) : (
+                            <span className="text-sm font-medium text-slate-400">Numbers coming soon</span>
+                        )}
+                    </div>
                 </div>
 
                 {/* TikTok Card */}
@@ -82,18 +93,24 @@ export const About = () => {
                     <h3 className="font-display font-bold text-foreground text-lg mb-2">TikTok</h3>
                     <p className="text-muted-foreground text-sm mb-6">Experience our products in motion. Get exclusive looks at our latest stock.</p>
 
-                    {settings?.tiktok_url ? (
-                        <a
-                            href={settings.tiktok_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-auto px-6 py-2.5 bg-foreground text-background rounded-xl font-medium text-sm hover:bg-zinc-800 transition-colors w-full sm:w-auto hover:shadow-md"
-                        >
-                            @bnshype
-                        </a>
-                    ) : (
-                        <span className="mt-auto text-sm font-medium text-slate-400">Link coming soon</span>
-                    )}
+                    <div className="w-full space-y-2 mt-auto">
+                        {settings?.tiktok_links && settings.tiktok_links.length > 0 ? (
+                            settings.tiktok_links.map((link, idx) => (
+                                <a
+                                    key={idx}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-foreground text-background rounded-xl font-medium text-sm hover:bg-zinc-800 transition-colors w-full hover:shadow-md"
+                                >
+                                    <Music size={14} />
+                                    {link.label || '@bnshype'}
+                                </a>
+                            ))
+                        ) : (
+                            <span className="text-sm font-medium text-slate-400">Links coming soon</span>
+                        )}
+                    </div>
                 </div>
             </div>
 

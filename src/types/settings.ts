@@ -12,12 +12,21 @@ export interface MarketplaceLink {
     custom_name?: string;
 }
 
+export interface LinkItem {
+    label: string;
+    url?: string;
+    number?: string; // For WhatsApp
+}
+
 export interface StoreSettings {
     id: number;
     about_text: string | null;
     instagram_url: string | null;
     tiktok_url: string | null;
     whatsapp_number: string | null;
+    instagram_links: LinkItem[];
+    tiktok_links: LinkItem[];
+    whatsapp_links: LinkItem[];
     offline_stores: Array<{
         name: string;
         address: string;
