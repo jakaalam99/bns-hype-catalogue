@@ -34,13 +34,6 @@ export const Catalogue = () => {
         setSearchParams(newParams, { replace: true });
     };
 
-    const setBrandFilter = (val: string) => {
-        const newParams = new URLSearchParams(searchParams);
-        if (val) newParams.set('brand', val);
-        else newParams.delete('brand');
-        newParams.set('page', '1');
-        setSearchParams(newParams, { replace: true });
-    };
 
     const setSortOption = (val: string) => {
         const newParams = new URLSearchParams(searchParams);
@@ -63,7 +56,6 @@ export const Catalogue = () => {
 
     // Filter Options
     const [categories, setCategories] = useState<string[]>([]);
-    const [brands, setBrands] = useState<string[]>([]);
 
     useEffect(() => {
         // Fetch valid options for the filters dynamically based on current selections
@@ -80,16 +72,6 @@ export const Catalogue = () => {
                     setCategories(uniqueCats.sort());
                 }
 
-                // Fetch valid brands based on current category and search
-                let brandQuery = supabase.from('products').select('brand');
-                if (categoryFilter) brandQuery = brandQuery.eq('category', categoryFilter);
-                if (searchQuery.trim()) brandQuery = brandQuery.or(`name.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`);
-
-                const { data: brandData } = await brandQuery.limit(1000);
-                if (brandData) {
-                    const uniqueBrands = Array.from(new Set(brandData.map(p => p.brand).filter(Boolean))) as string[];
-                    setBrands(uniqueBrands.sort());
-                }
             } catch (err) {
                 console.error("Failed to load dynamic filters", err);
             }
