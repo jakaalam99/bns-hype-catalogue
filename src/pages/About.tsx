@@ -1,5 +1,5 @@
 import { useStoreSettings } from '../features/catalogue/StoreSettingsContext';
-import { Instagram, MapPin, Store, Link as LinkIcon, ShoppingBag } from 'lucide-react';
+import { Instagram, MapPin, Store, Link as LinkIcon, ShoppingBag, Music } from 'lucide-react';
 
 export const About = () => {
     const { settings, loading } = useStoreSettings();
