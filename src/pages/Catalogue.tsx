@@ -5,7 +5,7 @@ import { Search, SlidersHorizontal, Loader2 } from 'lucide-react';
 import { formatIDR } from '../lib/utils';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useBasket } from '../features/catalogue/BasketContext';
-import { Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, CheckCircle2 } from 'lucide-react';
 
 export const Catalogue = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -14,6 +14,7 @@ export const Catalogue = () => {
     const [loading, setLoading] = useState(true);
     const { addToBasket } = useBasket();
     const [quantities, setQuantities] = useState<Record<string, number>>({});
+    const [addedProducts, setAddedProducts] = useState<Set<string>>(new Set());
 
     // Filters from URL
     const searchQuery = searchParams.get('q') || '';
@@ -182,6 +183,21 @@ export const Catalogue = () => {
         e.stopPropagation();
         const qty = quantities[product.id] || 1;
         addToBasket(product, qty);
+
+        // Show success state
+        setAddedProducts(prev => {
+            const next = new Set(prev);
+            next.add(product.id);
+            return next;
+        });
+        setTimeout(() => {
+            setAddedProducts(prev => {
+                const next = new Set(prev);
+                next.delete(product.id);
+                return next;
+            });
+        }, 2000);
+
         // Reset quantity for this product
         setQuantities(prev => ({ ...prev, [product.id]: 1 }));
     };
@@ -341,10 +357,22 @@ export const Catalogue = () => {
                                         </div>
                                         <button
                                             onClick={(e) => onAddToBasket(e, product)}
-                                            className="flex-1 bg-zinc-950 text-white rounded-lg h-8 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider hover:bg-zinc-800 transition-colors"
+                                            className={`flex-1 rounded-lg h-8 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${addedProducts.has(product.id)
+                                                    ? 'bg-emerald-500 text-white'
+                                                    : 'bg-zinc-950 text-white hover:bg-zinc-800'
+                                                }`}
                                         >
-                                            <ShoppingCart size={12} />
-                                            Add
+                                            {addedProducts.has(product.id) ? (
+                                                <>
+                                                    <CheckCircle2 size={12} />
+                                                    Added
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ShoppingCart size={12} />
+                                                    Add
+                                                </>
+                                            )}
                                         </button>
                                     </div>
                                 </div>

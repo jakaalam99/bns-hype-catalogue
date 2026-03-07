@@ -9,7 +9,11 @@ interface Particle {
   opacity: number;
 }
 
-export const BackgroundParticles: React.FC = () => {
+interface BackgroundParticlesProps {
+  count?: number;
+}
+
+export const BackgroundParticles: React.FC<BackgroundParticlesProps> = ({ count = 40 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -24,10 +28,10 @@ export const BackgroundParticles: React.FC = () => {
     let glowOrbs: Particle[] = [];
     let stars: (Particle & { rotation: number, twinkleSpeed: number })[] = [];
     let triangles: (Particle & { rotation: number, rotSpeed: number })[] = [];
-    const particleCount = 40;
-    const orbCount = 15;
-    const starCount = 20;
-    const triangleCount = 15;
+    const particleCount = count;
+    const orbCount = Math.ceil(count * 0.375);
+    const starCount = Math.ceil(count * 0.5);
+    const triangleCount = Math.ceil(count * 0.375);
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
