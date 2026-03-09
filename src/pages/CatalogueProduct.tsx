@@ -253,7 +253,7 @@ export const CatalogueProduct = () => {
                                 href={settings.contact_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block w-full py-4 bg-indigo-50 text-indigo-700 font-bold rounded-xl hover:bg-indigo-100 transition text-center border border-indigo-100"
+                                className="block w-full py-4 bg-zinc-950 text-white font-bold rounded-xl hover:bg-zinc-800 transition text-center shadow-premium"
                             >
                                 Contact Us
                             </a>
