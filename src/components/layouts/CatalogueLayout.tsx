@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { ShoppingBag, Menu, X, Instagram, Info, Home, Tag, Search, ShoppingCart } from 'lucide-react'
+import { ShoppingBag, Menu, X, Instagram, Info, Home, Tag, Search, ShoppingCart, LogOut } from 'lucide-react'
 import { useStoreSettings } from '../../features/catalogue/StoreSettingsContext'
 import { useBasket } from '../../features/catalogue/BasketContext'
 import { useAuthStore } from '../../features/auth/useAuthStore'
@@ -165,11 +165,24 @@ export const CatalogueLayout = () => {
                     </div>
                 )}
 
-                {!user && (
+                {!user ? (
                     <div className="p-4 border-t border-white/5 mt-auto bg-black/20">
                         <Link to="/admin" onClick={() => setIsSidebarOpen(false)} className="flex justify-center text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-widest text-[9px] font-bold">
                             Partner Portal
                         </Link>
+                    </div>
+                ) : (
+                    <div className="p-4 border-t border-white/5 mt-auto bg-black/20 flex flex-col gap-4">
+                        <button
+                            onClick={async () => {
+                                await supabase.auth.signOut();
+                                window.location.href = '/';
+                            }}
+                            className="flex items-center justify-center gap-2 w-full py-3 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-xl font-bold text-xs uppercase transition-colors"
+                        >
+                            <LogOut size={14} />
+                            Sign Out
+                        </button>
                     </div>
                 )}
             </div>

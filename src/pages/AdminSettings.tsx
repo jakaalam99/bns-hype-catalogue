@@ -58,6 +58,7 @@ export const AdminSettings = () => {
                     social_links: settings.social_links,
                     marketplace_links: settings.marketplace_links,
                     favicon_url: settings.favicon_url,
+                    contact_url: settings.contact_url,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', 1);
@@ -225,6 +226,17 @@ export const AdminSettings = () => {
                                 placeholder="https://example.com/favicon.png"
                             />
                             <p className="text-xs text-slate-500 mt-1">Paste a URL to an image (PNG/ICO) to change your website's tab icon.</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Global Contact URL</label>
+                            <input
+                                type="url"
+                                value={settings.contact_url || ''}
+                                onChange={(e) => setSettings({ ...settings, contact_url: e.target.value })}
+                                className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                placeholder="https://forms.gle/..."
+                            />
+                            <p className="text-xs text-slate-500 mt-1">This link will be used for the "Contact us" button on product detail pages.</p>
                         </div>
                     </div>
                 </div>

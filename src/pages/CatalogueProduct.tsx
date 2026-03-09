@@ -247,6 +247,17 @@ export const CatalogueProduct = () => {
                                 Contact via WhatsApp
                             </a>
                         )}
+
+                        {settings?.contact_url && (
+                            <a
+                                href={settings.contact_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block w-full py-4 bg-indigo-50 text-indigo-700 font-bold rounded-xl hover:bg-indigo-100 transition text-center border border-indigo-100"
+                            >
+                                Contact Us
+                            </a>
+                        )}
                     </div>
                 </div>
             </div>
