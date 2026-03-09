@@ -62,7 +62,7 @@ export const Catalogue = () => {
         const fetchFilterOptions = async () => {
             try {
                 // Fetch valid categories based on current brand and search
-                let catQuery = supabase.from('products').select('category');
+                let catQuery = supabase.from('products').select('category').eq('is_active', true);
                 if (brandFilter) catQuery = catQuery.eq('brand', brandFilter);
                 if (searchQuery.trim()) catQuery = catQuery.or(`name.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`);
 
@@ -99,7 +99,8 @@ export const Catalogue = () => {
                 .select(`
                     *,
                     images:product_images(*)
-                `);
+                `)
+                .eq('is_active', true);
 
             // Apply search
             if (searchQuery.trim() !== '') {

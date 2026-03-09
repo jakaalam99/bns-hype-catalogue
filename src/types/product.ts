@@ -7,6 +7,7 @@ export interface Product {
     name: string;
     price: number;
     discount_price: number | null;
+    is_active: boolean;
     created_at: string;
     updated_at: string;
 }

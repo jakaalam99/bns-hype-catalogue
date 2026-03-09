@@ -96,7 +96,7 @@ export const ProgramCatalogue = () => {
             if (!program || !program.skus || program.skus.length === 0) return;
             try {
                 // Fetch valid categories based on current brand and search within program skus
-                let catQuery = supabase.from('products').select('category').in('sku', program.skus);
+                let catQuery = supabase.from('products').select('category').in('sku', program.skus).eq('is_active', true);
                 if (brandFilter) catQuery = catQuery.eq('brand', brandFilter);
                 if (searchQuery.trim()) catQuery = catQuery.or(`name.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`);
 
@@ -107,7 +107,7 @@ export const ProgramCatalogue = () => {
                 }
 
                 // Fetch valid brands based on current category and search within program skus
-                let brandQuery = supabase.from('products').select('brand').in('sku', program.skus);
+                let brandQuery = supabase.from('products').select('brand').in('sku', program.skus).eq('is_active', true);
                 if (categoryFilter) brandQuery = brandQuery.eq('category', categoryFilter);
                 if (searchQuery.trim()) brandQuery = brandQuery.or(`name.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`);
 
@@ -152,7 +152,8 @@ export const ProgramCatalogue = () => {
                     *,
                     images:product_images(*)
                 `)
-                .in('sku', program.skus);
+                .in('sku', program.skus)
+                .eq('is_active', true);
 
             // Apply search
             if (searchQuery.trim() !== '') {

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { ProductWithImages } from '../types/product';
-import { Loader2, Plus, Search, FileDown, FileUp, Trash2, Edit } from 'lucide-react';
+import { Loader2, Plus, Search, FileDown, FileUp, Trash2, Edit, Eye, EyeOff } from 'lucide-react';
 import { ProductForm } from '../features/admin/ProductForm';
 import { ImportCSVForm } from '../features/admin/ImportCSVForm';
+import { BatchVisibilityForm } from '../features/admin/BatchVisibilityForm';
 import { formatIDR } from '../lib/utils';
 import * as XLSX from 'xlsx';
 
@@ -13,6 +14,7 @@ export const AdminProducts = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isCSVOpen, setIsCSVOpen] = useState(false);
+    const [isBatchVisibleOpen, setIsBatchVisibleOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<ProductWithImages | null>(null);
     const [programs, setPrograms] = useState<any[]>([]);
     const [imageFilter, setImageFilter] = useState<'all' | 'with_images' | 'no_images'>('all');
@@ -197,6 +199,13 @@ export const AdminProducts = () => {
                         Import Excel
                     </button>
                     <button
+                        onClick={() => setIsBatchVisibleOpen(true)}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium shadow-sm"
+                    >
+                        <Eye size={16} />
+                        Batch Visibility
+                    </button>
+                    <button
                         onClick={() => {
                             setEditingProduct(null);
                             setIsFormOpen(true);
@@ -334,9 +343,17 @@ export const AdminProducts = () => {
                                                 })}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                    Active
-                                                </span>
+                                                {product.is_active ? (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">
+                                                        <Eye size={12} />
+                                                        Active
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20">
+                                                        <EyeOff size={12} />
+                                                        Hidden
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex justify-end gap-2">
@@ -393,6 +410,16 @@ export const AdminProducts = () => {
                     onClose={() => setIsCSVOpen(false)}
                     onSuccess={() => {
                         setIsCSVOpen(false);
+                        fetchProducts();
+                    }}
+                />
+            )}
+
+            {isBatchVisibleOpen && (
+                <BatchVisibilityForm
+                    onClose={() => setIsBatchVisibleOpen(false)}
+                    onSuccess={() => {
+                        setIsBatchVisibleOpen(false);
                         fetchProducts();
                     }}
                 />
