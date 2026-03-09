@@ -203,7 +203,7 @@ export const CatalogueLayout = () => {
                     {/* Center: Title */}
                     <div className="flex flex-col items-center justify-center text-center">
                         <Link to="/" className="group">
-                            <h1 className="font-display font-black text-2xl sm:text-3xl tracking-[0.2em] leading-none text-foreground uppercase italic animate-glow-text animate-shimmer">
+                            <h1 className="font-sans font-black text-2xl sm:text-3xl tracking-[0.2em] leading-none text-foreground uppercase">
                                 BNS HYPE
                             </h1>
                             <p className="text-[10px] sm:text-xs text-slate-500 font-black uppercase tracking-[0.4em] mt-1 opacity-80 group-hover:opacity-100 transition-opacity">

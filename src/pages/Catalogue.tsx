@@ -260,7 +260,7 @@ export const Catalogue = () => {
                                             loading="lazy"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium tracking-widest text-sm">
+                                        <div className="w-full h-full flex items-center justify-center text-slate-400 font-sans font-medium tracking-widest text-sm">
                                             BNS HYPE
                                         </div>
                                     )}

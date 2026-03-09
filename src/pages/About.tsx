@@ -19,7 +19,7 @@ export const About = () => {
                 <div className="w-16 h-16 bg-foreground rounded-2xl mx-auto flex items-center justify-center text-background shadow-premium mb-6">
                     <Store size={32} />
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-display font-extrabold tracking-tight text-foreground text-balance">
+                <h1 className="text-4xl sm:text-5xl font-sans font-extrabold tracking-tight text-foreground text-balance">
                     About BNS HYPE
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
