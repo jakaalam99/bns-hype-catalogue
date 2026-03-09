@@ -18,6 +18,7 @@ export const AdminProducts = () => {
     const [editingProduct, setEditingProduct] = useState<ProductWithImages | null>(null);
     const [programs, setPrograms] = useState<any[]>([]);
     const [imageFilter, setImageFilter] = useState<'all' | 'with_images' | 'no_images'>('all');
+    const [statusTab, setStatusTab] = useState<'all' | 'active' | 'hidden'>('all');
 
 
     // Sorting
@@ -167,6 +168,10 @@ export const AdminProducts = () => {
         if (imageFilter === 'with_images') return hasImages;
         if (imageFilter === 'no_images') return !hasImages;
 
+        // Status filter
+        if (statusTab === 'active') return product.is_active === true;
+        if (statusTab === 'hidden') return product.is_active === false;
+
         return true;
     });
 
@@ -247,6 +252,55 @@ export const AdminProducts = () => {
                             <option value="no_images">No Images</option>
                         </select>
                     </div>
+                </div>
+
+                {/* Status Tabs */}
+                <div className="px-4 border-b border-slate-100 bg-slate-50/30 flex items-center gap-1">
+                    <button
+                        onClick={() => setStatusTab('all')}
+                        className={`px-4 py-3 text-sm font-bold uppercase tracking-widest transition-all relative ${statusTab === 'all'
+                            ? 'text-indigo-600'
+                            : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        All
+                        <span className="ml-2 px-1.5 py-0.5 rounded-md bg-slate-100 text-[10px] text-slate-500">
+                            {products.length}
+                        </span>
+                        {statusTab === 'all' && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600" />
+                        )}
+                    </button>
+                    <button
+                        onClick={() => setStatusTab('active')}
+                        className={`px-4 py-3 text-sm font-bold uppercase tracking-widest transition-all relative ${statusTab === 'active'
+                            ? 'text-emerald-600'
+                            : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        Active
+                        <span className="ml-2 px-1.5 py-0.5 rounded-md bg-emerald-50 text-[10px] text-emerald-600">
+                            {products.filter(p => p.is_active).length}
+                        </span>
+                        {statusTab === 'active' && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600" />
+                        )}
+                    </button>
+                    <button
+                        onClick={() => setStatusTab('hidden')}
+                        className={`px-4 py-3 text-sm font-bold uppercase tracking-widest transition-all relative ${statusTab === 'hidden'
+                            ? 'text-red-600'
+                            : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        Hidden
+                        <span className="ml-2 px-1.5 py-0.5 rounded-md bg-red-50 text-[10px] text-red-600">
+                            {products.filter(p => !p.is_active).length}
+                        </span>
+                        {statusTab === 'hidden' && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600" />
+                        )}
+                    </button>
                 </div>
 
                 <div className="overflow-x-auto">
