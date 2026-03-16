@@ -4,6 +4,7 @@ import type { ProductWithImages } from '../types/product';
 import { Loader2, Plus, Search, FileDown, FileUp, Trash2, Edit, Eye, EyeOff } from 'lucide-react';
 import { ProductForm } from '../features/admin/ProductForm';
 import { ImportCSVForm } from '../features/admin/ImportCSVForm';
+import { ImportStockCSVForm } from '../features/admin/ImportStockCSVForm';
 import { BatchVisibilityForm } from '../features/admin/BatchVisibilityForm';
 import { formatIDR } from '../lib/utils';
 import * as XLSX from 'xlsx';
@@ -14,6 +15,7 @@ export const AdminProducts = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isCSVOpen, setIsCSVOpen] = useState(false);
+    const [isStockCSVOpen, setIsStockCSVOpen] = useState(false);
     const [isBatchVisibleOpen, setIsBatchVisibleOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<ProductWithImages | null>(null);
     const [programs, setPrograms] = useState<any[]>([]);
@@ -202,6 +204,13 @@ export const AdminProducts = () => {
                     >
                         <FileDown size={16} />
                         Import Excel
+                    </button>
+                    <button
+                        onClick={() => setIsStockCSVOpen(true)}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium shadow-sm"
+                    >
+                        <FileDown size={16} />
+                        Import Stock
                     </button>
                     <button
                         onClick={() => setIsBatchVisibleOpen(true)}
@@ -465,6 +474,16 @@ export const AdminProducts = () => {
                     onSuccess={() => {
                         setIsCSVOpen(false);
                         fetchProducts();
+                    }}
+                />
+            )}
+
+            {isStockCSVOpen && (
+                <ImportStockCSVForm
+                    onClose={() => setIsStockCSVOpen(false)}
+                    onSuccess={() => {
+                        setIsStockCSVOpen(false);
+                        // Optionally refresh products if you show stock here, usually don't need to
                     }}
                 />
             )}

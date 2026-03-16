@@ -3,10 +3,13 @@ import { supabase } from '../lib/supabase';
 import { Loader2, Save, Store, Instagram, Phone, MapPin, Plus, Trash2, Link as LinkIcon, ShoppingBag, Music } from 'lucide-react';
 import type { StoreSettings } from '../types/settings';
 import { useStoreSettings } from '../features/catalogue/StoreSettingsContext';
+import type { Warehouse } from '../types/warehouse';
 
 export const AdminSettings = () => {
     const { refreshSettings } = useStoreSettings();
     const [settings, setSettings] = useState<StoreSettings | null>(null);
+    const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -27,6 +30,15 @@ export const AdminSettings = () => {
 
             if (error) throw error;
             setSettings(data as StoreSettings);
+
+            // Fetch Warehouses
+            const { data: wData, error: wError } = await supabase
+                .from('warehouses')
+                .select('*')
+                .order('name');
+            if (wError) console.error("Error fetching warehouses", wError);
+            else setWarehouses(wData as Warehouse[]);
+
         } catch (err: any) {
             console.error('Error fetching settings:', err);
             setError('Failed to load settings. Please refresh the page.');
@@ -64,6 +76,15 @@ export const AdminSettings = () => {
                 .eq('id', 1);
 
             if (updateError) throw updateError;
+
+            // Save warehouses visibility
+            if (warehouses.length > 0) {
+                const { error: wUpdateError } = await supabase
+                    .from('warehouses')
+                    .upsert(warehouses.map(w => ({ id: w.id, name: w.name, is_visible: w.is_visible })));
+                if (wUpdateError) console.error("Error updating warehouses", wUpdateError);
+            }
+
             await refreshSettings();
             setSuccess(true);
 
@@ -98,6 +119,10 @@ export const AdminSettings = () => {
         const newStores = [...settings.offline_stores];
         newStores[index] = { ...newStores[index], [field]: value };
         setSettings({ ...settings, offline_stores: newStores });
+    };
+
+    const toggleWarehouseVisibility = (id: string) => {
+        setWarehouses(warehouses.map(w => w.id === id ? { ...w, is_visible: !w.is_visible } : w));
     };
 
     // Platform Specific Multi-Link Handlers
@@ -634,6 +659,42 @@ export const AdminSettings = () => {
                                     </button>
                                 </div>
                             ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Warehouse Configurations */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                        <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                            <Store className="text-blue-600" size={18} />
+                            Warehouse Visibility (Product Detail Page)
+                        </h2>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <p className="text-sm text-slate-500 mb-4">
+                            Control which warehouses show up as "Available In" on the product detail pages. 
+                            Warehouses are created automatically when you upload stock via Excel in the Products page.
+                        </p>
+                        {warehouses.length === 0 ? (
+                            <p className="text-sm text-slate-400 italic">No warehouses have been created yet. Import stock via Excel to create warehouses.</p>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                {warehouses.map(w => (
+                                    <div key={w.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50">
+                                        <span className="text-sm font-medium text-slate-700">{w.name}</span>
+                                        <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={w.is_visible}
+                                                onChange={() => toggleWarehouseVisibility(w.id)}
+                                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            Visible
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </div>
                 </div>

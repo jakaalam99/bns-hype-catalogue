@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { ProductWithImages } from '../types/product';
+import type { Warehouse } from '../types/warehouse';
 import { formatIDR } from '../lib/utils';
-import { Loader2, ArrowLeft, ZoomIn, Plus, Minus, ShoppingCart, CheckCircle2 } from 'lucide-react';
+import { Loader2, ArrowLeft, ZoomIn, Plus, Minus, ShoppingCart, CheckCircle2, MapPin } from 'lucide-react';
 import { useStoreSettings } from '../features/catalogue/StoreSettingsContext';
 import { useBasket } from '../features/catalogue/BasketContext';
 import { useAuthStore } from '../features/auth/useAuthStore';
@@ -13,6 +14,7 @@ export const CatalogueProduct = () => {
     const navigate = useNavigate();
     const { settings } = useStoreSettings();
     const [product, setProduct] = useState<ProductWithImages | null>(null);
+    const [availableWarehouses, setAvailableWarehouses] = useState<Warehouse[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isZoomed, setIsZoomed] = useState(false);
@@ -55,6 +57,34 @@ export const CatalogueProduct = () => {
                 const sortedImages = data.images.sort((a: any, b: any) => a.display_order - b.display_order);
                 setSelectedImage(sortedImages[0].image_url);
             }
+
+            // Fetch available stock locations (warehouses)
+            const { data: stockData, error: stockError } = await supabase
+                .from('warehouse_stocks')
+                .select(`
+                    quantity,
+                    warehouses!inner (
+                        id,
+                        name,
+                        is_visible
+                    )
+                `)
+                .eq('product_id', productId)
+                .gt('quantity', 0);
+            
+            if (stockError) {
+                console.error("Error fetching stock data:", stockError);
+            } else if (stockData) {
+                // Map to unique, visible warehouses
+                const visibleWarehouses = stockData
+                    .map(s => s.warehouses as unknown as Warehouse)
+                    .filter(w => w.is_visible);
+                
+                // Deduplicate just in case
+                const uniqueWarehouses = Array.from(new Map(visibleWarehouses.map(w => [w.id, w])).values());
+                setAvailableWarehouses(uniqueWarehouses);
+            }
+
         } catch (error) {
             console.error('Error fetching product details:', error);
         } finally {
@@ -185,6 +215,21 @@ export const CatalogueProduct = () => {
                             <span className="text-3xl font-display font-bold text-foreground">{formatIDR(product.price)}</span>
                         )}
                     </div>
+
+                    {availableWarehouses.length > 0 && (
+                        <div className="mb-8 p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                <MapPin size={14} className="text-indigo-500" /> Available In:
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                                {availableWarehouses.map(wh => (
+                                    <span key={wh.id} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-white text-slate-700 border border-slate-200 shadow-sm">
+                                        {wh.name}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="prose prose-slate text-slate-600 mb-8 border-t border-slate-100 pt-8">
                         <p>This is a premium piece from the BNS Hype catalogue. All items are meticulously verified and handled with the utmost care for our discerning customers.</p>
