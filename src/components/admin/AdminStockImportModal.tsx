@@ -26,6 +26,17 @@ export const AdminStockImportModal: React.FC<SetupStepProps> = ({ isOpen, onClos
         }
     };
 
+    const handleDownloadTemplate = () => {
+        const ws = XLSX.utils.aoa_to_sheet([
+            ['SKU', 'Warehouse Category', 'Warehouse Location', 'QTY'],
+            ['BNS-TEST-SKU', 'WH Pusat', 'Rak A1', 50],
+            ['BNS-ANOTHER-SKU', 'WH Online', 'Rak B2', 25]
+        ]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Template');
+        XLSX.writeFile(wb, 'Stock_Import_Template.xlsx');
+    };
+
     const processExcel = async () => {
         if (!file) {
             setError('Please select a file first.');
@@ -186,9 +197,17 @@ export const AdminStockImportModal: React.FC<SetupStepProps> = ({ isOpen, onClos
                 <div className="p-8 space-y-6">
                     {/* Format Guide */}
                     <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-                        <h3 className="text-xs font-black text-indigo-800 uppercase tracking-widest mb-2 flex items-center gap-1">
-                            <FileSpreadsheet size={14} /> Expected Format
-                        </h3>
+                        <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-xs font-black text-indigo-800 uppercase tracking-widest flex items-center gap-1">
+                                <FileSpreadsheet size={14} /> Expected Format
+                            </h3>
+                            <button
+                                onClick={handleDownloadTemplate}
+                                className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 underline uppercase tracking-wider transition-colors"
+                            >
+                                Download Template
+                            </button>
+                        </div>
                         <p className="text-xs text-indigo-600 leading-relaxed">
                             Row 1 headers must include <strong className="font-mono">SKU</strong>, <strong className="font-mono">Warehouse Category</strong>, <strong className="font-mono">Warehouse Location</strong>, and <strong className="font-mono">QTY</strong>. Missing categories or locations will be created automatically.
                         </p>
