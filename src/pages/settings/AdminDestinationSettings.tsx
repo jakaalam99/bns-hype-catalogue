@@ -32,7 +32,10 @@ export const AdminDestinationSettings = () => {
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         const trimmed = newLocation.trim();
-        if (!trimmed) return;
+        if (!trimmed) {
+            setError('Please enter a location name first.');
+            return;
+        }
 
         setAdding(true);
         setError(null);
@@ -103,7 +106,7 @@ export const AdminDestinationSettings = () => {
                         />
                         <button
                             type="submit"
-                            disabled={adding || !newLocation.trim()}
+                            disabled={adding}
                             className="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 flex items-center gap-2 shadow-sm whitespace-nowrap"
                         >
                             {adding ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}

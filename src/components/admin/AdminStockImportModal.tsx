@@ -37,14 +37,10 @@ export const AdminStockImportModal: React.FC<SetupStepProps> = ({ isOpen, onClos
         setProgress(null);
 
         try {
-            // 1. Fetch SKUs and Warehouses to map IDs
+            // 1. Fetch SKUs to map product IDs
             const { data: pData, error: pErr } = await supabase.from('products').select('id, sku');
             if (pErr) throw pErr;
             const productMap = new Map((pData as any[]).map(p => [String(p.sku).trim().toLowerCase(), p.id]));
-
-            const { data: wData, error: wErr } = await supabase.from('warehouses').select('id, name');
-            if (wErr) throw wErr;
-            const warehouseMap = new Map((wData as any[]).map(w => [String(w.name).trim().toLowerCase(), w.id]));
 
             // 2. Parse Excel
             const buffer = await file.arrayBuffer();
@@ -57,51 +53,92 @@ export const AdminStockImportModal: React.FC<SetupStepProps> = ({ isOpen, onClos
             if (data.length < 2) throw new Error("Excel file must contain headers and at least one data row");
 
             const headers = data[0].map(h => String(h).trim().toLowerCase());
-            const skuColIdx = headers.indexOf('sku');
+            const skuCol = headers.indexOf('sku');
+            const catCol = headers.findIndex(h => h.includes('category'));
+            const locCol = headers.findIndex(h => h === 'warehouse location' || h === 'location');
+            const qtyCol = headers.findIndex(h => h === 'qty' || h === 'quantity');
             
-            if (skuColIdx === -1) throw new Error("Could not find 'SKU' column header");
-
-            // Identify warehouse columns
-            const whColumns: { idx: number, warehouseId: string, name: string }[] = [];
-            headers.forEach((h, idx) => {
-                if (idx !== skuColIdx && warehouseMap.has(h)) {
-                    whColumns.push({ idx, warehouseId: warehouseMap.get(h)!, name: h });
-                }
-            });
-
-            if (whColumns.length === 0) {
-                throw new Error("No warehouse headers found matching exact names in the system.");
+            if (skuCol === -1 || catCol === -1 || locCol === -1 || qtyCol === -1) {
+                throw new Error("Missing required columns. Must include: SKU, Warehouse Category, Warehouse Location, QTY");
             }
 
+            // 3. Find unique category/location pairs and create missing ones
+            const uniquePairs = new Map<string, { category: string, location: string, warehouseId?: string, categoryId?: string }>();
+            
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length === 0) continue;
+                const catRaw = row[catCol];
+                const locRaw = row[locCol];
+                if (!catRaw || !locRaw) continue;
+                const cat = String(catRaw).trim();
+                const loc = String(locRaw).trim();
+                const key = `${cat}|${loc}`;
+                if (!uniquePairs.has(key)) {
+                    uniquePairs.set(key, { category: cat, location: loc });
+                }
+            }
+
+            // Upsert Categories
+            const categoriesToHandle = Array.from(new Set(Array.from(uniquePairs.values()).map(p => p.category)));
+            const catIdMap = new Map<string, string>();
+            for (const c of categoriesToHandle) {
+                let { data: catData } = await supabase.from('warehouse_categories').select('id').eq('name', c).single();
+                if (!catData) {
+                    const { data: insertedCat } = await supabase.from('warehouse_categories').insert({ name: c }).select('id').single();
+                    if (insertedCat) catData = insertedCat;
+                }
+                if (catData) catIdMap.set(c.toLowerCase(), catData.id);
+            }
+
+            // Upsert Warehouses
+            const warehouseIdMap = new Map<string, string>();
+            for (const [key, pair] of uniquePairs.entries()) {
+                const catId = catIdMap.get(pair.category.toLowerCase());
+                if (!catId) continue;
+
+                let { data: whData } = await supabase.from('warehouses').select('id').eq('name', pair.location).single();
+                if (!whData) {
+                    const { data: insertedWh } = await supabase.from('warehouses').insert({ name: pair.location, category_id: catId }).select('id').single();
+                    if (insertedWh) whData = insertedWh;
+                } else {
+                    // Update existing warehouse category if needed
+                    await supabase.from('warehouses').update({ category_id: catId }).eq('id', whData.id);
+                }
+                if (whData) warehouseIdMap.set(key, whData.id);
+            }
+
+            // 4. Build Payload
             const payload: { product_id: string, warehouse_id: string, qty: number }[] = [];
 
-            // 3. Process Rows
             for (let i = 1; i < data.length; i++) {
                 const row = data[i];
                 if (!row || row.length === 0) continue;
 
-                const skuRaw = row[skuColIdx];
-                if (!skuRaw) continue;
+                const skuRaw = row[skuCol];
+                const catRaw = row[catCol];
+                const locRaw = row[locCol];
+                const qtyRaw = row[qtyCol];
+
+                if (!skuRaw || !catRaw || !locRaw || !qtyRaw) continue;
 
                 const sku = String(skuRaw).trim().toLowerCase();
                 const productId = productMap.get(sku);
+                if (!productId) continue;
 
-                if (!productId) {
-                    // Skip or warn? For now we just silently skip missing SKUs.
-                    continue;
+                const qty = parseInt(String(qtyRaw), 10);
+                if (isNaN(qty) || qty <= 0) continue;
+
+                const key = `${String(catRaw).trim()}|${String(locRaw).trim()}`;
+                const warehouseId = warehouseIdMap.get(key);
+
+                if (warehouseId) {
+                    payload.push({
+                        product_id: productId,
+                        warehouse_id: warehouseId,
+                        qty
+                    });
                 }
-
-                whColumns.forEach(col => {
-                    const rawVal = row[col.idx];
-                    const qty = parseInt(String(rawVal), 10);
-                    if (!isNaN(qty) && qty > 0) {
-                        payload.push({
-                            product_id: productId,
-                            warehouse_id: col.warehouseId,
-                            qty
-                        });
-                    }
-                });
             }
 
             if (payload.length === 0) {
@@ -153,7 +190,7 @@ export const AdminStockImportModal: React.FC<SetupStepProps> = ({ isOpen, onClos
                             <FileSpreadsheet size={14} /> Expected Format
                         </h3>
                         <p className="text-xs text-indigo-600 leading-relaxed">
-                            Row 1 headers must include <strong className="font-mono">SKU</strong>. Any other headers matching exact <strong className="font-mono">Warehouse Names</strong> will be mapped. Values must be integers representing the quantity to <strong className="font-bold underline">add</strong> to existing stock.
+                            Row 1 headers must include <strong className="font-mono">SKU</strong>, <strong className="font-mono">Warehouse Category</strong>, <strong className="font-mono">Warehouse Location</strong>, and <strong className="font-mono">QTY</strong>. Missing categories or locations will be created automatically.
                         </p>
                     </div>
 
