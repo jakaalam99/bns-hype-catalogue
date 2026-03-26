@@ -31,10 +31,9 @@ export const CheckoutSection = () => {
         
         // Ensure destination location is chosen either globally or per item.
         // We will default to selectedLocation for all items if they don't have one specific to them.
-        const itemsWithDest = items.map(i => {
+        items.forEach(i => {
             const dest = (i as any).destination_location || selectedLocation;
             if (!dest) throw new Error(`Missing Destination Location for SKU ${i.sku}`);
-            return dest;
         });
 
         if (!selectedLocation && items.some(i => !(i as any).destination_location)) {
@@ -54,7 +53,7 @@ export const CheckoutSection = () => {
                 destination_location: (item as any).destination_location || selectedLocation
             }));
 
-            const { data, error: rpcError } = await supabase.rpc('submit_inventory_request', {
+            const { error: rpcError } = await supabase.rpc('submit_inventory_request', {
                 p_requestor_id: user?.id,
                 p_requestor_role: user?.user_metadata?.role || 'BELI_PUTUS',
                 p_items: rpcPayload

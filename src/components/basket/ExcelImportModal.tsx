@@ -1,15 +1,8 @@
 import { useState, useRef } from 'react';
-import { Upload, X, AlertCircle, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { X, AlertCircle, FileSpreadsheet, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '../../lib/supabase';
 import { useBasket } from '../../features/catalogue/BasketContext';
-
-interface ExcelRow {
-    SKU: string;
-    'Product Name': string;
-    QTY: number;
-    'Destination Location': string;
-}
 
 export const ExcelImportModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);

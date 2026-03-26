@@ -1,5 +1,3 @@
-import { Product } from './product';
-
 export type RequestStatus = 'Under Review' | 'SJ Creation' | 'Picking' | 'On Delivery' | 'Delivered';
 
 export type UserRole = 
