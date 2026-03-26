@@ -23,7 +23,8 @@ export const CatalogueProduct = () => {
     const [addedToBasket, setAddedToBasket] = useState(false);
     const { addToBasket } = useBasket();
     const user = useAuthStore(state => state.user);
-    const isPutus = user?.user_metadata?.role === 'putus';
+    const requestorRoles = ['putus', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
+    const isRequestor = requestorRoles.includes(user?.user_metadata?.role || '');
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isZoomed) return;
@@ -243,7 +244,7 @@ export const CatalogueProduct = () => {
                     </div>
 
                     <div className="mt-auto pt-8 space-y-4">
-                        {isPutus && (
+                        {isRequestor && (
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden h-14 bg-white">
                                     <button

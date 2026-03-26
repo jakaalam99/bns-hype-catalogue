@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Loader2, Save, Store, Instagram, Phone, MapPin, Plus, Trash2, Link as LinkIcon, ShoppingBag, Music } from 'lucide-react';
+import { Loader2, Save, Store, Instagram, Phone, MapPin, Plus, Trash2, Link as LinkIcon, ShoppingBag } from 'lucide-react';
 import type { StoreSettings } from '../types/settings';
-import { useStoreSettings } from '../features/catalogue/StoreSettingsContext';
-import type { Warehouse } from '../types/warehouse';
 
 export const AdminSettings = () => {
-    const { refreshSettings } = useStoreSettings();
     const [settings, setSettings] = useState<StoreSettings | null>(null);
-    const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
-
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -30,15 +25,6 @@ export const AdminSettings = () => {
 
             if (error) throw error;
             setSettings(data as StoreSettings);
-
-            // Fetch Warehouses
-            const { data: wData, error: wError } = await supabase
-                .from('warehouses')
-                .select('*')
-                .order('name');
-            if (wError) console.error("Error fetching warehouses", wError);
-            else setWarehouses(wData as Warehouse[]);
-
         } catch (err: any) {
             console.error('Error fetching settings:', err);
             setError('Failed to load settings. Please refresh the page.');
@@ -61,31 +47,15 @@ export const AdminSettings = () => {
                 .update({
                     about_text: settings.about_text,
                     instagram_url: settings.instagram_url,
-                    tiktok_url: settings.tiktok_url,
                     whatsapp_number: settings.whatsapp_number,
-                    instagram_links: settings.instagram_links,
-                    tiktok_links: settings.tiktok_links,
-                    whatsapp_links: settings.whatsapp_links,
                     offline_stores: settings.offline_stores,
                     social_links: settings.social_links,
                     marketplace_links: settings.marketplace_links,
-                    favicon_url: settings.favicon_url,
-                    contact_url: settings.contact_url,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', 1);
 
             if (updateError) throw updateError;
-
-            // Save warehouses visibility
-            if (warehouses.length > 0) {
-                const { error: wUpdateError } = await supabase
-                    .from('warehouses')
-                    .upsert(warehouses.map(w => ({ id: w.id, name: w.name, is_visible: w.is_visible })));
-                if (wUpdateError) console.error("Error updating warehouses", wUpdateError);
-            }
-
-            await refreshSettings();
             setSuccess(true);
 
             // Hide success message after 3 seconds
@@ -119,40 +89,6 @@ export const AdminSettings = () => {
         const newStores = [...settings.offline_stores];
         newStores[index] = { ...newStores[index], [field]: value };
         setSettings({ ...settings, offline_stores: newStores });
-    };
-
-    const toggleWarehouseVisibility = (id: string) => {
-        setWarehouses(warehouses.map(w => w.id === id ? { ...w, is_visible: !w.is_visible } : w));
-    };
-
-    // Platform Specific Multi-Link Handlers
-    const addPlatformLink = (platform: 'instagram' | 'tiktok' | 'whatsapp') => {
-        if (!settings) return;
-        const field = `${platform}_links` as keyof StoreSettings;
-        const currentLinks = (settings[field] as any[]) || [];
-        const newItem = platform === 'whatsapp' ? { label: '', number: '' } : { label: '', url: '' };
-        setSettings({
-            ...settings,
-            [field]: [...currentLinks, newItem]
-        });
-    };
-
-    const removePlatformLink = (platform: 'instagram' | 'tiktok' | 'whatsapp', index: number) => {
-        if (!settings) return;
-        const field = `${platform}_links` as keyof StoreSettings;
-        const currentLinks = (settings[field] as any[]) || [];
-        setSettings({
-            ...settings,
-            [field]: currentLinks.filter((_, i) => i !== index)
-        });
-    };
-
-    const updatePlatformLink = (platform: 'instagram' | 'tiktok' | 'whatsapp', index: number, linkField: string, value: string) => {
-        if (!settings) return;
-        const field = `${platform}_links` as keyof StoreSettings;
-        const currentLinks = [...((settings[field] as any[]) || [])];
-        currentLinks[index] = { ...currentLinks[index], [linkField]: value };
-        setSettings({ ...settings, [field]: currentLinks });
     };
 
     const addSocialLink = () => {
@@ -241,28 +177,6 @@ export const AdminSettings = () => {
                             />
                             <p className="text-xs text-slate-500 mt-1">This will be displayed on the public About page.</p>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Favicon URL (Browser Tab Icon)</label>
-                            <input
-                                type="url"
-                                value={settings.favicon_url || ''}
-                                onChange={(e) => setSettings({ ...settings, favicon_url: e.target.value })}
-                                className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                placeholder="https://example.com/favicon.png"
-                            />
-                            <p className="text-xs text-slate-500 mt-1">Paste a URL to an image (PNG/ICO) to change your website's tab icon.</p>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Global Contact URL</label>
-                            <input
-                                type="url"
-                                value={settings.contact_url || ''}
-                                onChange={(e) => setSettings({ ...settings, contact_url: e.target.value })}
-                                className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                placeholder="https://forms.gle/..."
-                            />
-                            <p className="text-xs text-slate-500 mt-1">This link will be used for the "Contact us" button on product detail pages.</p>
-                        </div>
                     </div>
                 </div>
 
@@ -274,146 +188,33 @@ export const AdminSettings = () => {
                             Contact & Socials
                         </h2>
                     </div>
-                    <div className="p-6 space-y-8">
-                        {/* Instagram Links */}
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                                    <Instagram size={14} className="text-pink-500" />
-                                    Instagram Accounts
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={() => addPlatformLink('instagram')}
-                                    className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
-                                >
-                                    <Plus size={12} /> Add Account
-                                </button>
-                            </div>
-                            <div className="space-y-3">
-                                {settings.instagram_links?.map((link, idx) => (
-                                    <div key={idx} className="flex gap-3 items-center">
-                                        <input
-                                            type="text"
-                                            value={link.label}
-                                            onChange={(e) => updatePlatformLink('instagram', idx, 'label', e.target.value)}
-                                            placeholder="Label (e.g. @bnshype)"
-                                            className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
-                                        />
-                                        <input
-                                            type="url"
-                                            value={link.url}
-                                            onChange={(e) => updatePlatformLink('instagram', idx, 'url', e.target.value)}
-                                            placeholder="Instagram URL"
-                                            className="flex-[2] px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removePlatformLink('instagram', idx)}
-                                            className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-                                ))}
-                                {(!settings.instagram_links || settings.instagram_links.length === 0) && (
-                                    <p className="text-xs text-slate-400 italic">No Instagram accounts added.</p>
-                                )}
-                            </div>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-2">
+                                <Instagram size={14} className="text-slate-400" />
+                                Instagram URL
+                            </label>
+                            <input
+                                type="url"
+                                value={settings.instagram_url || ''}
+                                onChange={(e) => setSettings({ ...settings, instagram_url: e.target.value })}
+                                className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                placeholder="https://instagram.com/bnshype"
+                            />
                         </div>
-
-                        {/* TikTok Links */}
-                        <div className="space-y-4 pt-4 border-t border-slate-100">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                                    <Music size={14} className="text-slate-900" />
-                                    TikTok Accounts
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={() => addPlatformLink('tiktok')}
-                                    className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
-                                >
-                                    <Plus size={12} /> Add Account
-                                </button>
-                            </div>
-                            <div className="space-y-3">
-                                {settings.tiktok_links?.map((link, idx) => (
-                                    <div key={idx} className="flex gap-3 items-center">
-                                        <input
-                                            type="text"
-                                            value={link.label}
-                                            onChange={(e) => updatePlatformLink('tiktok', idx, 'label', e.target.value)}
-                                            placeholder="Label (e.g. @bnshype_tiktok)"
-                                            className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
-                                        />
-                                        <input
-                                            type="url"
-                                            value={link.url}
-                                            onChange={(e) => updatePlatformLink('tiktok', idx, 'url', e.target.value)}
-                                            placeholder="TikTok URL"
-                                            className="flex-[2] px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removePlatformLink('tiktok', idx)}
-                                            className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-                                ))}
-                                {(!settings.tiktok_links || settings.tiktok_links.length === 0) && (
-                                    <p className="text-xs text-slate-400 italic">No TikTok accounts added.</p>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* WhatsApp Links */}
-                        <div className="space-y-4 pt-4 border-t border-slate-100">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                                    <Phone size={14} className="text-emerald-500" />
-                                    WhatsApp Numbers
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={() => addPlatformLink('whatsapp')}
-                                    className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
-                                >
-                                    <Plus size={12} /> Add Number
-                                </button>
-                            </div>
-                            <div className="space-y-3">
-                                {settings.whatsapp_links?.map((link, idx) => (
-                                    <div key={idx} className="flex gap-3 items-center">
-                                        <input
-                                            type="text"
-                                            value={link.label}
-                                            onChange={(e) => updatePlatformLink('whatsapp', idx, 'label', e.target.value)}
-                                            placeholder="Label (e.g. Sales Team)"
-                                            className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={link.number}
-                                            onChange={(e) => updatePlatformLink('whatsapp', idx, 'number', e.target.value)}
-                                            placeholder="+62812..."
-                                            className="flex-[2] px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removePlatformLink('whatsapp', idx)}
-                                            className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-                                ))}
-                                {(!settings.whatsapp_links || settings.whatsapp_links.length === 0) && (
-                                    <p className="text-xs text-slate-400 italic">No WhatsApp numbers added.</p>
-                                )}
-                            </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-2">
+                                <Phone size={14} className="text-slate-400" />
+                                WhatsApp Number
+                            </label>
+                            <input
+                                type="text"
+                                value={settings.whatsapp_number || ''}
+                                onChange={(e) => setSettings({ ...settings, whatsapp_number: e.target.value })}
+                                className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                placeholder="+6281234567890"
+                            />
+                            <p className="text-xs text-slate-500 mt-1">Used for the "Contact to Purchase" buttons.</p>
                         </div>
                     </div>
                 </div>
@@ -659,42 +460,6 @@ export const AdminSettings = () => {
                                     </button>
                                 </div>
                             ))
-                        )}
-                    </div>
-                </div>
-
-                {/* Warehouse Configurations */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-                        <h2 className="font-semibold text-slate-800 flex items-center gap-2">
-                            <Store className="text-blue-600" size={18} />
-                            Warehouse Visibility (Product Detail Page)
-                        </h2>
-                    </div>
-                    <div className="p-6 space-y-4">
-                        <p className="text-sm text-slate-500 mb-4">
-                            Control which warehouses show up as "Available In" on the product detail pages. 
-                            Warehouses are created automatically when you upload stock via Excel in the Products page.
-                        </p>
-                        {warehouses.length === 0 ? (
-                            <p className="text-sm text-slate-400 italic">No warehouses have been created yet. Import stock via Excel to create warehouses.</p>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                {warehouses.map(w => (
-                                    <div key={w.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50">
-                                        <span className="text-sm font-medium text-slate-700">{w.name}</span>
-                                        <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={w.is_visible}
-                                                onChange={() => toggleWarehouseVisibility(w.id)}
-                                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                                            />
-                                            Visible
-                                        </label>
-                                    </div>
-                                ))}
-                            </div>
                         )}
                     </div>
                 </div>

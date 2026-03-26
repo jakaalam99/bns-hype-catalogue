@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Package, LogOut, Settings, Tag, Menu, X, FileText } from 'lucide-react'
+import { LayoutDashboard, Package, LogOut, Settings, Tag, Menu, X, FileText, ClipboardList, Instagram, ShoppingBag, MapPin, Store, Send, Truck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { BackgroundParticles } from '../BackgroundParticles'
-
+import { useAuthStore } from '../../features/auth/useAuthStore'
 
 export const AdminLayout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
+    const { user } = useAuthStore();
+    const role = user?.user_metadata?.role || 'ADMIN'; // default to ADMIN if no role is set
+    const isSuperAdmin = role === 'ADMIN';
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
@@ -38,6 +41,22 @@ export const AdminLayout = () => {
                         Dashboard
                     </NavLink>
 
+                    {['MD', 'FINANCE', 'ADMIN'].includes(role) && (
+                        <NavLink
+                            to="/admin/requests"
+                            className={({ isActive }) =>
+                                `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                }`
+                            }
+                        >
+                            <Send size={18} />
+                            Requests
+                        </NavLink>
+                    )}
+
+                    {isSuperAdmin && (
+                        <>
+
                     <NavLink
                         to="/admin/products"
                         className={({ isActive }) =>
@@ -61,6 +80,17 @@ export const AdminLayout = () => {
                     </NavLink>
 
                     <NavLink
+                        to="/admin/inventory"
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <ClipboardList size={18} />
+                        Inventory
+                    </NavLink>
+
+                    <NavLink
                         to="/admin/brand-guidance"
                         className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -71,16 +101,79 @@ export const AdminLayout = () => {
                         Brand Guidance
                     </NavLink>
 
+                    <div className="pt-4 pb-1">
+                        <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                            Store Configuration
+                        </p>
+                    </div>
+
                     <NavLink
-                        to="/admin/settings"
+                        to="/admin/settings/general"
                         className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                             }`
                         }
                     >
                         <Settings size={18} />
-                        Settings
+                        General Information
                     </NavLink>
+
+                    <NavLink
+                        to="/admin/settings/socials"
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <Instagram size={18} />
+                        Social Media
+                    </NavLink>
+
+                    <NavLink
+                        to="/admin/settings/marketplaces"
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <ShoppingBag size={18} />
+                        Marketplaces
+                    </NavLink>
+
+                    <NavLink
+                        to="/admin/settings/offline-stores"
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <MapPin size={18} />
+                        Offline Stores
+                    </NavLink>
+
+                    <NavLink
+                        to="/admin/settings/warehouses"
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <Store size={18} />
+                        Warehouse Visibility
+                    </NavLink>
+
+                    <NavLink
+                        to="/admin/settings/destinations"
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <Truck size={18} />
+                        Destinations
+                    </NavLink>
+                    </>
+                    )}
                 </nav>
 
                 <div className="p-4 border-t border-border">
@@ -124,6 +217,23 @@ export const AdminLayout = () => {
                         Dashboard
                     </NavLink>
 
+                    {['MD', 'FINANCE', 'ADMIN'].includes(role) && (
+                        <NavLink
+                            to="/admin/requests"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={({ isActive }) =>
+                                `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                }`
+                            }
+                        >
+                            <Send size={18} />
+                            Requests
+                        </NavLink>
+                    )}
+
+                    {isSuperAdmin && (
+                        <>
+
                     <NavLink
                         to="/admin/products"
                         onClick={() => setIsMobileMenuOpen(false)}
@@ -149,6 +259,18 @@ export const AdminLayout = () => {
                     </NavLink>
 
                     <NavLink
+                        to="/admin/inventory"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <ClipboardList size={18} />
+                        Inventory
+                    </NavLink>
+
+                    <NavLink
                         to="/admin/brand-guidance"
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={({ isActive }) =>
@@ -160,8 +282,14 @@ export const AdminLayout = () => {
                         Brand Guidance
                     </NavLink>
 
+                    <div className="pt-4 pb-1">
+                        <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                            Store Configuration
+                        </p>
+                    </div>
+
                     <NavLink
-                        to="/admin/settings"
+                        to="/admin/settings/general"
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -169,8 +297,70 @@ export const AdminLayout = () => {
                         }
                     >
                         <Settings size={18} />
-                        Settings
+                        General Information
                     </NavLink>
+
+                    <NavLink
+                        to="/admin/settings/socials"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <Instagram size={18} />
+                        Social Media
+                    </NavLink>
+
+                    <NavLink
+                        to="/admin/settings/marketplaces"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <ShoppingBag size={18} />
+                        Marketplaces
+                    </NavLink>
+
+                    <NavLink
+                        to="/admin/settings/offline-stores"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <MapPin size={18} />
+                        Offline Stores
+                    </NavLink>
+
+                    <NavLink
+                        to="/admin/settings/warehouses"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <Store size={18} />
+                        Warehouse Visibility
+                    </NavLink>
+
+                    <NavLink
+                        to="/admin/settings/destinations"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`
+                        }
+                    >
+                        <Truck size={18} />
+                        Destinations
+                    </NavLink>
+                    </>
+                    )}
                 </nav>
 
                 <div className="p-4 border-t border-border">

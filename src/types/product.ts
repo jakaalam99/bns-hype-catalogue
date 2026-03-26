@@ -22,4 +22,5 @@ export interface ProductImage {
 
 export interface ProductWithImages extends Product {
     images: ProductImage[];
+    warehouse_stocks?: { quantity: number }[];
 }

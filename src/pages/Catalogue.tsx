@@ -17,7 +17,8 @@ export const Catalogue = () => {
     const [quantities, setQuantities] = useState<Record<string, number>>({});
     const [addedProducts, setAddedProducts] = useState<Set<string>>(new Set());
     const user = useAuthStore(state => state.user);
-    const isPutus = user?.user_metadata?.role === 'putus';
+    const requestorRoles = ['putus', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
+    const isRequestor = requestorRoles.includes(user?.user_metadata?.role || '');
 
     // Filters from URL
     const searchQuery = searchParams.get('q') || '';
@@ -98,7 +99,8 @@ export const Catalogue = () => {
                 .from('products')
                 .select(`
                     *,
-                    images:product_images(*)
+                    images:product_images(*),
+                    warehouse_stocks(quantity)
                 `)
                 .eq('is_active', true);
 
@@ -299,9 +301,17 @@ export const Catalogue = () => {
                                             )}
                                         </div>
                                     </div>
+                                    
+                                    {isRequestor && (
+                                        <div className="pt-2">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
+                                                Stock: {product.warehouse_stocks?.reduce((acc, curr) => acc + curr.quantity, 0) || 0}
+                                            </span>
+                                        </div>
+                                    )}
 
-                                    {/* Add to Basket Controls - Restricted to 'putus' role */}
-                                    {isPutus && (
+                                    {/* Add to Basket Controls - Restricted to Requestor roles */}
+                                    {isRequestor && (
                                         <div className="pt-3 flex items-center gap-2" onClick={e => e.stopPropagation()}>
                                             <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden h-8">
                                                 <button

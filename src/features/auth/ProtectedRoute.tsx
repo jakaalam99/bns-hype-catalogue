@@ -54,7 +54,9 @@ export const PublicRoute = () => {
     // If logged in, don't let them see the login page again
     if (session) {
         const userRole = session.user?.user_metadata?.role;
-        if (userRole === 'putus') {
+        const requestorRoles = ['putus', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
+        // If it's a requestor role, send them to catalogue
+        if (requestorRoles.includes(userRole)) {
             return <Navigate to="/" replace />
         }
         return <Navigate to="/admin/dashboard" replace />

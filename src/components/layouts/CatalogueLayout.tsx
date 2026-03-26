@@ -13,7 +13,8 @@ export const CatalogueLayout = () => {
     const { settings } = useStoreSettings();
     const { totalCount } = useBasket();
     const user = useAuthStore(state => state.user);
-    const isPutus = user?.user_metadata?.role === 'putus';
+    const requestorRoles = ['PUTUS', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
+    const isRequestor = requestorRoles.includes(user?.user_metadata?.role?.toUpperCase() || '');
     const [animateBasket, setAnimateBasket] = useState(false);
     const location = useLocation();
     const [activePrograms, setActivePrograms] = useState<Program[]>([]);
@@ -110,7 +111,7 @@ export const CatalogueLayout = () => {
                         <Tag size={18} />
                         Brand Guidance
                     </Link>
-                    {isPutus && (
+                    {isRequestor && (
                         <Link
                             to="/basket"
                             onClick={() => setIsSidebarOpen(false)}
@@ -212,9 +213,9 @@ export const CatalogueLayout = () => {
                         </Link>
                     </div>
 
-                    {/* Right: Basket Button - Restricted to 'putus' */}
+                    {/* Right: Basket Button - Restricted to requestors */}
                     <div className="flex justify-end items-center">
-                        {isPutus && (
+                        {isRequestor && (
                             <Link
                                 to="/basket"
                                 className={`p-2 relative flex items-center justify-center hover:bg-black/5 rounded-lg transition-all group ${animateBasket ? 'scale-125' : 'scale-100'}`}

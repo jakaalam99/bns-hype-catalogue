@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { BackgroundParticles } from '../components/BackgroundParticles';
 import { supabase } from '../lib/supabase';
+import { ExcelImportModal } from '../components/basket/ExcelImportModal';
+import { CheckoutSection } from '../components/basket/CheckoutSection';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -12,6 +14,7 @@ export const Basket = () => {
     const { items, removeFromBasket, updateQuantity, clearBasket, totalCount } = useBasket();
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 
     const exportToExcel = () => {
         if (items.length === 0) return;
@@ -71,14 +74,24 @@ export const Basket = () => {
                     </div>
                     <h2 className="text-3xl font-display font-black text-slate-900 mb-4 tracking-tight uppercase">Your Basket is Empty</h2>
                     <p className="text-slate-500 mb-10 max-w-md mx-auto font-medium">Browse our collection and add items to your list.</p>
-                    <Link
-                        to="/"
-                        className="inline-flex items-center gap-2 bg-black text-white font-bold px-8 py-4 rounded-xl hover:bg-zinc-800 transition shadow-premium group"
-                    >
-                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                        Explore Catalogue
-                    </Link>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <Link
+                            to="/"
+                            className="inline-flex items-center gap-2 bg-black text-white font-bold px-8 py-4 rounded-xl hover:bg-zinc-800 transition shadow-premium group w-full sm:w-auto justify-center"
+                        >
+                            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                            Explore Catalogue
+                        </Link>
+                        <button
+                            onClick={() => setIsExcelModalOpen(true)}
+                            className="inline-flex items-center gap-2 bg-white text-black border border-slate-200 font-bold px-8 py-4 rounded-xl hover:bg-slate-50 transition shadow-sm w-full sm:w-auto justify-center"
+                        >
+                            <FileSpreadsheet size={20} />
+                            Import Excel
+                        </button>
+                    </div>
                 </div>
+                <ExcelImportModal isOpen={isExcelModalOpen} onClose={() => setIsExcelModalOpen(false)} />
             </div>
         );
     }
@@ -116,11 +129,18 @@ export const Basket = () => {
                             Clear All
                         </button>
                         <button
+                            onClick={() => setIsExcelModalOpen(true)}
+                            className="flex items-center gap-2 px-8 py-4 bg-white border border-slate-200 text-slate-700 font-black rounded-xl hover:bg-slate-50 transition shadow-sm text-xs uppercase tracking-widest"
+                        >
+                            <FileSpreadsheet size={16} />
+                            Import Excel
+                        </button>
+                        <button
                             onClick={exportToExcel}
                             className="flex items-center gap-2 px-8 py-4 bg-black text-white font-black rounded-xl hover:bg-zinc-800 transition shadow-premium text-xs uppercase tracking-widest"
                         >
                             <FileSpreadsheet size={16} />
-                            Export to Excel
+                            Export
                         </button>
                     </div>
                 </div>
@@ -172,6 +192,12 @@ export const Basket = () => {
                                                     <span className="font-bold text-slate-900 text-base mb-0.5 group-hover:text-indigo-600 transition-colors truncate">{item.name}</span>
                                                     <div className="flex items-center gap-3">
                                                         <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded">{item.category || 'Standard'}</span>
+                                                        {(item as any).destination_location && (
+                                                            <>
+                                                                <span className="text-slate-200 font-light">|</span>
+                                                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded">To: {(item as any).destination_location}</span>
+                                                            </>
+                                                        )}
                                                         <span className="text-slate-200 font-light">|</span>
                                                         <span className="text-[10px] font-mono text-slate-500">BC: {item.barcode || 'N/A'}</span>
                                                     </div>
@@ -311,6 +337,10 @@ export const Basket = () => {
                     </div>
                 )}
 
+                <div className="mt-8">
+                    <CheckoutSection />
+                </div>
+
                 {/* Footer disclaimer */}
                 <div className="mt-20 text-center pb-12 opacity-50">
                     <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.4em] max-w-lg mx-auto leading-relaxed">
@@ -318,6 +348,8 @@ export const Basket = () => {
                     </p>
                 </div>
             </div>
+            
+            <ExcelImportModal isOpen={isExcelModalOpen} onClose={() => setIsExcelModalOpen(false)} />
         </div >
     );
 };

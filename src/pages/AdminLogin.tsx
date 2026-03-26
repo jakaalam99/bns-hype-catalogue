@@ -28,9 +28,11 @@ export const AdminLogin = () => {
 
             // Successfully logged in - Check role for redirection
             const { data: { user } } = await supabase.auth.getUser()
-            const role = user?.user_metadata?.role
+            const role = user?.user_metadata?.role?.toUpperCase() || ''
+            
+            const requestorRoles = ['PUTUS', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM']
 
-            if (role === 'putus') {
+            if (requestorRoles.includes(role)) {
                 navigate('/', { replace: true })
             } else {
                 navigate('/admin/dashboard', { replace: true })
