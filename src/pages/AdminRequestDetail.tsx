@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../features/auth/useAuthStore';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, Loader2, CheckCircle2, FileText, Check, X, ShieldAlert, FileOutput } from 'lucide-react';
+import { ArrowLeft, Loader2, FileText, Check, X, ShieldAlert, FileOutput } from 'lucide-react';
 
 export const AdminRequestDetail = () => {
     const { id } = useParams();
@@ -21,6 +21,9 @@ export const AdminRequestDetail = () => {
 
     const [adjustments, setAdjustments] = useState<Record<string, number>>({});
     const [isProcessing, setIsProcessing] = useState(false);
+    
+    // Finance new states
+    const [newSjNumber, setNewSjNumber] = useState('');
 
     useEffect(() => {
         fetchRequestData();
@@ -130,42 +133,40 @@ export const AdminRequestDetail = () => {
     };
 
     const generateSJ = async () => {
-        if (!id) return;
+        if (!id || !newSjNumber.trim()) return;
         setIsProcessing(true);
         try {
-            // Generate mock SJ number
-            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-            const randomDoc = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-            const sjNumber = `SJ/${dateStr}/${randomDoc}`;
-
             // Insert into surat_jalan
             const { error: sjErr } = await supabase.from('surat_jalan').insert([{
                 request_id: id,
-                sj_number: sjNumber
+                sj_number: newSjNumber.trim()
             }]);
             if (sjErr) throw sjErr;
 
-            // Update status to SJ Issued
-            const { error: updErr } = await supabase.from('requests').update({ status: 'SJ Issued' }).eq('id', id);
-            if (updErr) throw updErr;
+            // Change status to PICKING if it's currently Approved (or keep tracking)
+            if (request.status === 'Approved') {
+                const { error: updErr } = await supabase.from('requests').update({ status: 'PICKING' }).eq('id', id);
+                if (updErr) throw updErr;
+            }
 
+            setNewSjNumber('');
             await fetchRequestData();
         } catch (err: any) {
-            alert(`Error generating SJ: ${err.message}`);
+            alert(`Error adding SJ: ${err.message}`);
         } finally {
             setIsProcessing(false);
         }
     };
 
-    const markCompleted = async () => {
+    const updateFinanceStatus = async (newStatus: string) => {
         if (!id) return;
         setIsProcessing(true);
         try {
-            const { error } = await supabase.from('requests').update({ status: 'Completed' }).eq('id', id);
+            const { error } = await supabase.from('requests').update({ status: newStatus }).eq('id', id);
             if (error) throw error;
             await fetchRequestData();
         } catch (err: any) {
-             alert(`Error marking completed: ${err.message}`);
+             alert(`Error updating status: ${err.message}`);
         } finally {
              setIsProcessing(false);
         }
@@ -193,8 +194,9 @@ export const AdminRequestDetail = () => {
     const canMDApprove = isMD && isPendingMD;
     
     // Finance allowed actions
-    const canFinanceSJ = isFinance && request.status === 'Approved';
-    const canFinanceComplete = isFinance && ['SJ Issued', 'Partial Fulfillment'].includes(request.status);
+    const canFinanceSJ = isFinance && ['Approved', 'PICKING', 'On Delivery', 'Delivered', 'Partial Fulfillment'].includes(request.status);
+    const financeStatusOptions = ['PICKING', 'On Delivery', 'Delivered'];
+    const canChangeFinanceStatus = isFinance && sj.length > 0;
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -202,6 +204,9 @@ export const AdminRequestDetail = () => {
             case 'Under Review': return 'bg-amber-100 text-amber-800 border-amber-200';
             case 'Adjusted': return 'bg-orange-100 text-orange-800 border-orange-200';
             case 'Approved': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+            case 'PICKING': return 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200';
+            case 'On Delivery': return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+            case 'Delivered': return 'bg-emerald-600 text-white border-emerald-600';
             case 'SJ Issued': return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'Partial Fulfillment': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
             case 'Completed': return 'bg-zinc-900 text-white border-zinc-900';
@@ -301,23 +306,86 @@ export const AdminRequestDetail = () => {
                 </div>
             </div>
 
-            {/* SJ Display */}
-            {sj.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div>
-                        <h3 className="font-black tracking-widest text-blue-800 uppercase text-xs mb-1 flex items-center gap-1">
-                            <FileOutput size={14} /> Surat Jalan Issued
-                        </h3>
-                        <p className="font-mono text-xl font-bold text-blue-900">{sj[0].sj_number}</p>
-                        <p className="text-xs text-blue-600/80 mt-1">Generated: {new Date(sj[0].created_at).toLocaleString()}</p>
+            {/* SJ Display & Input */}
+            {canFinanceSJ ? (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 md:p-8 space-y-6">
+                    <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">
+                        <FileOutput size={20} className="text-indigo-600" /> Surat Jalan & Logistics
+                    </h3>
+                    
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <input
+                            type="text"
+                            placeholder="Enter new SJ Number..."
+                            value={newSjNumber}
+                            onChange={(e) => setNewSjNumber(e.target.value)}
+                            className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                        />
+                        <button
+                            onClick={generateSJ}
+                            disabled={!newSjNumber.trim() || isProcessing}
+                            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+                        >
+                            <Check size={18} /> Add SJ Record
+                        </button>
+                    </div>
+
+                    {sj.length > 0 && (
+                        <div className="space-y-3">
+                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Attached SJ Numbers</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {sj.map(s => (
+                                    <div key={s.id} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center gap-3">
+                                        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                                            <FileOutput size={16} />
+                                        </div>
+                                        <div>
+                                            <p className="font-mono font-bold text-slate-900">{s.sj_number}</p>
+                                            <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">{new Date(s.created_at).toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ) : sj.length > 0 && (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 md:p-8 space-y-4">
+                    <h3 className="font-black tracking-widest text-slate-500 uppercase text-xs mb-1 flex items-center gap-1">
+                        <FileOutput size={14} /> Attached Surat Jalan
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {sj.map(s => (
+                            <div key={s.id} className="bg-white border border-slate-200 p-4 rounded-xl flex items-center gap-3">
+                                <FileOutput size={16} className="text-indigo-600" />
+                                <div>
+                                    <p className="font-mono font-bold text-slate-900">{s.sj_number}</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}
 
             {/* Action Bar */}
-            {(canMDApprove || canFinanceSJ || canFinanceComplete) && (
+            {(canMDApprove || canFinanceSJ || canChangeFinanceStatus) && (
                 <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap justify-end gap-3 sticky bottom-4 z-10">
                     
+                    {canChangeFinanceStatus && (
+                        <div className="flex items-center gap-2 mr-auto bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                            {financeStatusOptions.map(st => (
+                                <button
+                                    key={st}
+                                    onClick={() => updateFinanceStatus(st)}
+                                    disabled={isProcessing || request.status === st}
+                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${request.status === st ? 'bg-white shadow-sm text-indigo-700 pointer-events-none' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}
+                                >
+                                    {st}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     {canMDApprove && (
                         <>
                             <p className="mr-auto self-center text-sm font-medium text-slate-500 hidden md:block px-4">
@@ -339,26 +407,6 @@ export const AdminRequestDetail = () => {
                                 <Check size={18} /> Approve Allocations
                             </button>
                         </>
-                    )}
-
-                    {canFinanceSJ && (
-                        <button
-                            onClick={generateSJ}
-                            disabled={isProcessing}
-                            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition flex items-center gap-2"
-                        >
-                            <FileText size={18} /> Generate SJ
-                        </button>
-                    )}
-
-                    {canFinanceComplete && (
-                        <button
-                            onClick={markCompleted}
-                            disabled={isProcessing}
-                            className="px-6 py-3 bg-zinc-900 hover:bg-black text-white font-bold rounded-xl shadow-premium transition flex items-center gap-2"
-                        >
-                            <CheckCircle2 size={18} /> Mark as Completed
-                        </button>
                     )}
                 </div>
             )}

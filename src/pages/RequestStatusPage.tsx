@@ -66,6 +66,9 @@ export const RequestStatusPage = () => {
             case 'Under Review': return 'bg-amber-50 text-amber-700 border-amber-200';
             case 'Adjusted': return 'bg-orange-50 text-orange-700 border-orange-200';
             case 'Approved': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            case 'PICKING': return 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200';
+            case 'On Delivery': return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+            case 'Delivered': return 'bg-emerald-600 text-white border-emerald-600';
             case 'SJ Issued': return 'bg-blue-50 text-blue-700 border-blue-200';
             case 'Partial Fulfillment': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
             case 'Completed': return 'bg-zinc-900 text-white border-zinc-900';
