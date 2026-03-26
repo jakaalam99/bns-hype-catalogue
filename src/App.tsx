@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { CatalogueLayout } from './components/layouts/CatalogueLayout.tsx'
 import { AdminLayout } from './components/layouts/AdminLayout.tsx'
@@ -27,9 +28,14 @@ import { FaviconManager } from './components/FaviconManager'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { AdminRequests } from './pages/AdminRequests'
 import { AdminRequestDetail } from './pages/AdminRequestDetail'
-import { RequestStatusPage } from './pages/RequestStatusPage'
+import { RequestStatusPage } from './pages/RequestStatusPage.tsx'
+import { useAuthStore } from './features/auth/useAuthStore'
 
 function App() {
+  useEffect(() => {
+    useAuthStore.getState().initialize()
+  }, [])
+
   return (
     <StoreSettingsProvider>
       <BasketProvider>

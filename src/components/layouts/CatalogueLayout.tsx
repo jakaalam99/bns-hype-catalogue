@@ -7,14 +7,15 @@ import { useAuthStore } from '../../features/auth/useAuthStore'
 import { supabase } from '../../lib/supabase'
 import type { Program } from '../../types/program'
 import { BackgroundParticles } from '../BackgroundParticles'
+import { FileText } from 'lucide-react'
 
 export const CatalogueLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
     const { settings } = useStoreSettings();
     const { totalCount } = useBasket();
     const user = useAuthStore(state => state.user);
-    const requestorRoles = ['PUTUS', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
-    const isRequestor = requestorRoles.includes(user?.user_metadata?.role?.toUpperCase() || '');
+    const requestorRoles = ['putus', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
+    const isRequestor = requestorRoles.some(r => r.toUpperCase() === (user?.user_metadata?.role || '').toUpperCase());
     const [animateBasket, setAnimateBasket] = useState(false);
     const location = useLocation();
     const [activePrograms, setActivePrograms] = useState<Program[]>([]);
@@ -126,6 +127,16 @@ export const CatalogueLayout = () => {
                                 )}
                             </div>
                             My Basket
+                        </Link>
+                    )}
+                    {isRequestor && (
+                        <Link
+                            to="/requests"
+                            onClick={() => setIsSidebarOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${location.pathname === '/requests' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                        >
+                            <FileText size={18} />
+                            Request History
                         </Link>
                     )}
 

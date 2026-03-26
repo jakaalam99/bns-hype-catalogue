@@ -29,6 +29,7 @@ export const AdminRequests = () => {
                     status,
                     created_at,
                     requestor_id,
+                    requestor_role,
                     request_items (
                         requested_qty,
                         allocated_qty
@@ -173,6 +174,7 @@ export const AdminRequests = () => {
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Request ID</th>
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Date (WIB)</th>
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Items (Req/Alloc)</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Role</th>
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
                                 </tr>
@@ -193,6 +195,11 @@ export const AdminRequests = () => {
                                             <td className="px-6 py-5 text-sm text-slate-600 font-medium">{dateStr}</td>
                                             <td className="px-6 py-5 text-right font-medium text-slate-700">
                                                 {totalAllocated} <span className="text-slate-400 font-normal">/ {totalRequested}</span>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-[10px] uppercase font-bold tracking-widest text-slate-600 border border-slate-200">
+                                                    {req.requestor_role || 'Unknown'}
+                                                </span>
                                             </td>
                                             <td className="px-6 py-5">
                                                 <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border ${getStatusColor(req.status)}`}>

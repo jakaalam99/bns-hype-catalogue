@@ -241,6 +241,7 @@ export const AdminRequestDetail = () => {
                                     <th className="px-4 py-3 text-xs font-black text-slate-500 uppercase tracking-widest">Destination</th>
                                     <th className="px-4 py-3 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Requested</th>
                                     <th className="px-4 py-3 text-xs font-black text-slate-500 uppercase tracking-widest text-right">System Alloc</th>
+                                    <th className="px-4 py-3 text-xs font-black text-slate-500 uppercase tracking-widest">Sources</th>
                                     <th className="px-4 py-3 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Final Alloc</th>
                                 </tr>
                             </thead>
@@ -261,6 +262,18 @@ export const AdminRequestDetail = () => {
                                             <span className={`font-medium ${item.allocated_qty < item.requested_qty ? 'text-orange-500' : 'text-emerald-600'}`}>
                                                 {item.allocated_qty}
                                             </span>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <div className="flex flex-wrap gap-1">
+                                                {allocations.filter(a => a.request_item_id === item.id).map(a => (
+                                                    <span key={a.id} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 whitespace-nowrap">
+                                                        {a.warehouses?.name}: {a.qty}
+                                                    </span>
+                                                ))}
+                                                {allocations.filter(a => a.request_item_id === item.id).length === 0 && (
+                                                    <span className="text-xs text-slate-400 italic">No sources</span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-4 py-4 text-right flex justify-end">
                                             {canMDApprove ? (
@@ -286,28 +299,6 @@ export const AdminRequestDetail = () => {
                         </table>
                     </div>
                 </div>
-
-                {/* Sourcing Section */}
-                {allocations.length > 0 && (
-                    <div className="bg-slate-50 p-6 md:p-8 border-t border-slate-200">
-                        <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Allocation Sources</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {allocations.map(alloc => {
-                                const relatedItem = items.find(i => i.id === alloc.request_item_id);
-                                return (
-                                    <div key={alloc.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-                                        <span className="text-xs font-mono text-slate-400 mb-1">{relatedItem?.sku}</span>
-                                        <span className="font-bold text-slate-800 text-sm mb-2 truncate">{relatedItem?.product_name}</span>
-                                        <div className="mt-auto flex justify-between items-center text-sm">
-                                            <span className="text-slate-600 truncate mr-2" title={alloc.warehouses?.name}>{alloc.warehouses?.name}</span>
-                                            <span className="font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">+{alloc.qty}</span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* SJ Display */}
