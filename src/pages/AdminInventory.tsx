@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Search, Package, Loader2, AlertCircle, Upload } from 'lucide-react';
+import { Search, Package, Loader2, AlertCircle, Upload, Trash2 } from 'lucide-react';
 import type { Warehouse } from '../types/warehouse';
 import type { Product } from '../types/product';
 import { AdminStockImportModal } from '../components/admin/AdminStockImportModal';
@@ -84,6 +84,36 @@ export const AdminInventory = () => {
         }
     };
 
+    const handleWipeInventory = async () => {
+        if (!confirm('🚨 DANGER! Are you absolutely sure you want to WIPE all stock inventory to 0? This action cannot be undone and will affect all live locations!')) {
+            return;
+        }
+
+        const confirmWord = prompt('Type "WIPE" to confirm clearing all structural stock data:');
+        if (confirmWord !== 'WIPE') {
+            alert('Wipe cancelled.');
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+        try {
+            const { error } = await supabase
+                .from('warehouse_stocks')
+                .delete()
+                .gte('quantity', 0);
+            
+            if (error) throw error;
+            
+            alert('Inventory successfully wiped.');
+            await fetchInventoryData();
+        } catch (err: any) {
+            console.error('Failed to wipe inventory:', err);
+            setError(err.message || 'Failed to wipe inventory.');
+            setLoading(false);
+        }
+    };
+
     const filteredInventory = inventory.filter(p => 
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
         p.sku.toLowerCase().includes(searchTerm.toLowerCase())
@@ -116,6 +146,15 @@ export const AdminInventory = () => {
                             <Loader2 className="animate-spin" size={16} /> Syncing Inventory
                         </div>
                     )}
+                    <button
+                        onClick={handleWipeInventory}
+                        disabled={loading || inventory.length === 0}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 font-bold rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
+                        title="Danger: Delete all stock"
+                    >
+                        <Trash2 size={18} />
+                        Wipe Stock
+                    </button>
                     <button
                         onClick={() => setIsImportModalOpen(true)}
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors shadow-sm whitespace-nowrap"
