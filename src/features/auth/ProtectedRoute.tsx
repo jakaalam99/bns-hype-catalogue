@@ -27,7 +27,7 @@ export const ProtectedRoute = ({ allowRoles, children }: { allowRoles?: string[]
     // Check roles if specified
     if (allowRoles && allowRoles.length > 0) {
         const userRole = user?.user_metadata?.role;
-        if (!allowRoles.includes(userRole)) {
+        if (!allowRoles.some(r => r.toUpperCase() === userRole?.toUpperCase())) {
             // If user doesn't have the role, redirect to home or somewhere safe
             return <Navigate to="/" replace />
         }
@@ -56,7 +56,7 @@ export const PublicRoute = () => {
         const userRole = session.user?.user_metadata?.role;
         const requestorRoles = ['putus', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
         // If it's a requestor role, send them to catalogue
-        if (requestorRoles.includes(userRole)) {
+        if (requestorRoles.some(r => r.toUpperCase() === userRole?.toUpperCase())) {
             return <Navigate to="/" replace />
         }
         return <Navigate to="/admin/dashboard" replace />

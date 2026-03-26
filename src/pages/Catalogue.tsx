@@ -18,7 +18,7 @@ export const Catalogue = () => {
     const [addedProducts, setAddedProducts] = useState<Set<string>>(new Set());
     const user = useAuthStore(state => state.user);
     const requestorRoles = ['putus', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
-    const isRequestor = requestorRoles.includes(user?.user_metadata?.role || '');
+    const isRequestor = requestorRoles.some(r => r.toUpperCase() === (user?.user_metadata?.role || '').toUpperCase());
 
     // Filters from URL
     const searchQuery = searchParams.get('q') || '';
