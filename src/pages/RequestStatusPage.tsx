@@ -32,8 +32,7 @@ export const RequestStatusPage = () => {
                         ),
                         surat_jalan (
                             id,
-                            sj_number,
-                            pdf_url
+                            sj_number
                         )
                     `)
                     .eq('requestor_id', user.id)
@@ -161,12 +160,9 @@ export const RequestStatusPage = () => {
                                                 <td className="px-6 py-5 text-right">
                                                     <div className="flex items-center justify-end gap-3">
                                                         {hasSJ && (
-                                                            <button 
-                                                                onClick={() => window.open(req.surat_jalan[0]?.pdf_url, '_blank')}
-                                                                className="text-indigo-600 hover:text-indigo-800 text-xs font-bold uppercase tracking-wider flex items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
-                                                            >
-                                                                <FileText size={14} /> Download SJ
-                                                            </button>
+                                                            <span className="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-blue-100">
+                                                                <FileText size={14} /> SJ Uploaded
+                                                            </span>
                                                         )}
                                                         <button 
                                                             onClick={() => toggleRow(req.id)}
