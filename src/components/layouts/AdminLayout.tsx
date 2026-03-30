@@ -27,19 +27,24 @@ export const AdminLayout = () => {
                 <div className="p-6">
                     <h2 className="font-bold text-lg tracking-tight">Admin System</h2>
                     <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">BNS Hype</p>
+                    <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase tracking-widest">
+                        Role: {role}
+                    </div>
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1">
-                    <NavLink
-                        to="/admin/dashboard"
-                        className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                            }`
-                        }
-                    >
-                        <LayoutDashboard size={18} />
-                        Dashboard
-                    </NavLink>
+                    {['ADMIN', 'MD'].includes(role) && (
+                        <NavLink
+                            to="/admin/dashboard"
+                            className={({ isActive }) =>
+                                `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                }`
+                            }
+                        >
+                            <LayoutDashboard size={18} />
+                            Dashboard
+                        </NavLink>
+                    )}
 
                     {['MD', 'FINANCE', 'ADMIN'].includes(role) && (
                         <NavLink
@@ -198,6 +203,9 @@ export const AdminLayout = () => {
                     <div>
                         <h2 className="font-bold text-lg tracking-tight">Admin System</h2>
                         <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">BNS Hype</p>
+                        <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase tracking-widest">
+                            Role: {role}
+                        </div>
                     </div>
                     <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-500 hover:bg-slate-100 p-2 rounded-full">
                         <X size={20} />
@@ -205,17 +213,19 @@ export const AdminLayout = () => {
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1">
-                    <NavLink
-                        to="/admin/dashboard"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                            }`
-                        }
-                    >
-                        <LayoutDashboard size={18} />
-                        Dashboard
-                    </NavLink>
+                    {['ADMIN', 'MD'].includes(role) && (
+                        <NavLink
+                            to="/admin/dashboard"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={({ isActive }) =>
+                                `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                }`
+                            }
+                        >
+                            <LayoutDashboard size={18} />
+                            Dashboard
+                        </NavLink>
+                    )}
 
                     {['MD', 'FINANCE', 'ADMIN'].includes(role) && (
                         <NavLink

@@ -84,17 +84,20 @@ export const AdminRequests = () => {
         const matchesSearch = req.id.toLowerCase().includes(search.toLowerCase());
         
         let matchesStatus = true;
-        if (statusFilter !== 'All Active') {
-            if (statusFilter === 'Pending MD Action') {
-                matchesStatus = ['Under Review', 'Adjusted'].includes(req.status);
-            } else if (statusFilter === 'Pending Finance Action') {
-                matchesStatus = ['Approved'].includes(req.status);
-            } else {
-                matchesStatus = req.status === statusFilter;
-            }
-        } else {
+        
+        if (statusFilter === 'All Active') {
             // 'All Active' hides completed, rejected, draft
             matchesStatus = !['Draft', 'Rejected', 'Completed'].includes(req.status);
+        } else if (statusFilter === 'Pending MD Action') {
+            matchesStatus = ['Under Review', 'Adjusted'].includes(req.status);
+        } else if (statusFilter === 'Pending Finance Action') {
+            matchesStatus = ['Approved'].includes(req.status);
+        } else if (statusFilter) {
+            // Specific status match
+            matchesStatus = req.status === statusFilter;
+        } else {
+            // 'All Statuses' tab (empty string) - match everything
+            matchesStatus = true;
         }
 
         return matchesSearch && matchesStatus;

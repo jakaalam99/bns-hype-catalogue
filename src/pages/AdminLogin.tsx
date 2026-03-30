@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { Lock, Mail, Loader2 } from 'lucide-react'
+import { Lock, Mail, Loader2, Eye, EyeOff } from 'lucide-react'
 import { BackgroundParticles } from '../components/BackgroundParticles'
 
 
@@ -10,6 +10,7 @@ export const AdminLogin = () => {
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [showPassword, setShowPassword] = useState(false)
 
     const navigate = useNavigate()
 
@@ -90,19 +91,26 @@ export const AdminLogin = () => {
                         <label className="block text-sm font-medium text-foreground mb-1.5" htmlFor="password">
                             Password
                         </label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-foreground transition-colors">
                                 <Lock size={18} />
                             </div>
                             <input
                                 id="password"
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="block w-full pl-10 pr-3 py-2.5 bg-surface border border-border rounded-xl text-foreground focus:ring-2 focus:ring-foreground focus:border-foreground transition-shadow outline-none"
+                                className="block w-full pl-10 pr-10 py-2.5 bg-surface border border-border rounded-xl text-foreground focus:ring-2 focus:ring-foreground focus:border-foreground transition-shadow outline-none"
                                 placeholder="••••••••"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                     </div>
 
