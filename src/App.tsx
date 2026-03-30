@@ -4,6 +4,7 @@ import { CatalogueLayout } from './components/layouts/CatalogueLayout.tsx'
 import { AdminLayout } from './components/layouts/AdminLayout.tsx'
 import { AdminLogin } from './pages/AdminLogin'
 import { ProtectedRoute, PublicRoute } from './features/auth/ProtectedRoute'
+import { hasDashboardAccess } from './features/auth/roleUtils'
 import { Catalogue } from './pages/Catalogue'
 import { AdminProducts } from './pages/AdminProducts'
 import { AdminPrograms } from './pages/AdminPrograms'
@@ -75,7 +76,7 @@ function App() {
                   </ProtectedRoute>
                 } />
                 <Route path="dashboard" element={
-                  <ProtectedRoute allowRoles={['ADMIN', 'MD']}>
+                  <ProtectedRoute allowRoles={['ADMIN', 'MD', 'SUPER_ADMIN', 'MERCHANDISER']}>
                     <AdminDashboard />
                   </ProtectedRoute>
                 } />
@@ -102,9 +103,9 @@ function App() {
 
 function AdminIndexRedirect() {
   const { user } = useAuthStore();
-  const role = user?.user_metadata?.role?.toUpperCase();
+  const role = user?.user_metadata?.role;
   
-  if (['ADMIN', 'MD'].includes(role)) {
+  if (hasDashboardAccess(role)) {
     return <Navigate to="/admin/dashboard" replace />;
   }
   return <Navigate to="/admin/requests" replace />;

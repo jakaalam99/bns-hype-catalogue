@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Lock, Mail, Loader2, Eye, EyeOff } from 'lucide-react'
+import { hasDashboardAccess, REQUESTOR_ROLES } from '../features/auth/roleUtils'
 import { BackgroundParticles } from '../components/BackgroundParticles'
 
 
@@ -31,11 +32,11 @@ export const AdminLogin = () => {
             const { data: { user } } = await supabase.auth.getUser()
             const role = user?.user_metadata?.role?.toUpperCase() || ''
             
-            const requestorRoles = ['PUTUS', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM']
+            const requestorRoles = REQUESTOR_ROLES;
 
             if (requestorRoles.includes(role)) {
                 navigate('/', { replace: true })
-            } else if (['ADMIN', 'MD'].includes(role)) {
+            } else if (hasDashboardAccess(role)) {
                 navigate('/admin/dashboard', { replace: true })
             } else {
                 navigate('/admin/requests', { replace: true })

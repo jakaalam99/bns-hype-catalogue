@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuthStore } from './useAuthStore'
+import { hasDashboardAccess, REQUESTOR_ROLES } from './roleUtils'
 import { Loader2 } from 'lucide-react'
 
 export const ProtectedRoute = ({ allowRoles, children }: { allowRoles?: string[], children?: React.ReactNode }) => {
@@ -57,14 +58,14 @@ export const PublicRoute = () => {
     // If logged in, don't let them see the login page again
     if (session) {
         const userRole = session.user?.user_metadata?.role;
-        const requestorRoles = ['putus', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
+        const requestorRoles = REQUESTOR_ROLES;
         // If it's a requestor role, send them to catalogue
         if (requestorRoles.some(r => r.toUpperCase() === userRole?.toUpperCase())) {
             return <Navigate to="/" replace />
         }
         
         // Admin-side redirect
-        if (['ADMIN', 'MD'].includes(userRole?.toUpperCase())) {
+        if (hasDashboardAccess(userRole)) {
             return <Navigate to="/admin/dashboard" replace />
         }
         return <Navigate to="/admin/requests" replace />

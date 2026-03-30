@@ -4,13 +4,16 @@ import { LayoutDashboard, Package, LogOut, Settings, Tag, Menu, X, FileText, Cli
 import { supabase } from '../../lib/supabase'
 import { BackgroundParticles } from '../BackgroundParticles'
 import { useAuthStore } from '../../features/auth/useAuthStore'
+import { hasDashboardAccess, isAdminSide } from '../../features/auth/roleUtils'
 
 export const AdminLayout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
     const { user } = useAuthStore();
-    const role = user?.user_metadata?.role || 'ADMIN'; // default to ADMIN if no role is set
-    const isSuperAdmin = role === 'ADMIN';
+    const role = user?.user_metadata?.role?.toUpperCase() || '';
+    const isSuperAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(role);
+    const isMDOrAdmin = hasDashboardAccess(role);
+    const canSeeRequests = isAdminSide(role);
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
@@ -33,7 +36,7 @@ export const AdminLayout = () => {
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1">
-                    {['ADMIN', 'MD'].includes(role) && (
+                    {isMDOrAdmin && (
                         <NavLink
                             to="/admin/dashboard"
                             className={({ isActive }) =>
@@ -46,7 +49,7 @@ export const AdminLayout = () => {
                         </NavLink>
                     )}
 
-                    {['MD', 'FINANCE', 'ADMIN'].includes(role) && (
+                    {canSeeRequests && (
                         <NavLink
                             to="/admin/requests"
                             className={({ isActive }) =>
@@ -213,7 +216,7 @@ export const AdminLayout = () => {
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1">
-                    {['ADMIN', 'MD'].includes(role) && (
+                    {isMDOrAdmin && (
                         <NavLink
                             to="/admin/dashboard"
                             onClick={() => setIsMobileMenuOpen(false)}
@@ -227,7 +230,7 @@ export const AdminLayout = () => {
                         </NavLink>
                     )}
 
-                    {['MD', 'FINANCE', 'ADMIN'].includes(role) && (
+                    {canSeeRequests && (
                         <NavLink
                             to="/admin/requests"
                             onClick={() => setIsMobileMenuOpen(false)}

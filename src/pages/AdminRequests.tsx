@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../features/auth/useAuthStore';
+import { hasDashboardAccess } from '../features/auth/roleUtils';
 import { supabase } from '../lib/supabase';
 import { Loader2, Search, Eye, Filter, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const AdminRequests = () => {
     const { user } = useAuthStore();
-    const role = user?.user_metadata?.role;
+    const role = user?.user_metadata?.role?.toUpperCase() || '';
     const isFinance = role === 'FINANCE';
-    const isMD = role === 'MD' || role === 'SUPER_ADMIN';
+    const isMD = hasDashboardAccess(role);
 
     const [requests, setRequests] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
