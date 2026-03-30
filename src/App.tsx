@@ -69,8 +69,16 @@ function App() {
 
             <Route element={<ProtectedRoute />}>
               <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route index element={
+                  <ProtectedRoute>
+                    <AdminIndexRedirect />
+                  </ProtectedRoute>
+                } />
+                <Route path="dashboard" element={
+                  <ProtectedRoute allowRoles={['ADMIN', 'MD']}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
                 <Route path="requests" element={<AdminRequests />} />
                 <Route path="requests/:id" element={<AdminRequestDetail />} />
                 <Route path="products" element={<AdminProducts />} />
@@ -90,6 +98,16 @@ function App() {
       </BasketProvider>
     </StoreSettingsProvider>
   )
+}
+
+function AdminIndexRedirect() {
+  const { user } = useAuthStore();
+  const role = user?.user_metadata?.role?.toUpperCase();
+  
+  if (['ADMIN', 'MD'].includes(role)) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  return <Navigate to="/admin/requests" replace />;
 }
 
 export default App

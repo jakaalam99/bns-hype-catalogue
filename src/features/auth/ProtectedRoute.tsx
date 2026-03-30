@@ -28,7 +28,10 @@ export const ProtectedRoute = ({ allowRoles, children }: { allowRoles?: string[]
     if (allowRoles && allowRoles.length > 0) {
         const userRole = user?.user_metadata?.role;
         if (!allowRoles.some(r => r.toUpperCase() === userRole?.toUpperCase())) {
-            // If user doesn't have the role, redirect to home or somewhere safe
+            // If user doesn't have the role, redirect to a safe admin page if they are admin-side, or home
+            if (location.pathname.startsWith('/admin')) {
+                return <Navigate to="/admin/requests" replace />
+            }
             return <Navigate to="/" replace />
         }
     }
@@ -59,7 +62,12 @@ export const PublicRoute = () => {
         if (requestorRoles.some(r => r.toUpperCase() === userRole?.toUpperCase())) {
             return <Navigate to="/" replace />
         }
-        return <Navigate to="/admin/dashboard" replace />
+        
+        // Admin-side redirect
+        if (['ADMIN', 'MD'].includes(userRole?.toUpperCase())) {
+            return <Navigate to="/admin/dashboard" replace />
+        }
+        return <Navigate to="/admin/requests" replace />
     }
 
     return <Outlet />

@@ -35,8 +35,10 @@ export const AdminLogin = () => {
 
             if (requestorRoles.includes(role)) {
                 navigate('/', { replace: true })
-            } else {
+            } else if (['ADMIN', 'MD'].includes(role)) {
                 navigate('/admin/dashboard', { replace: true })
+            } else {
+                navigate('/admin/requests', { replace: true })
             }
         } catch (err: any) {
             setError(err.message || "Failed to authenticate.")
