@@ -41,7 +41,7 @@ export const AdminRequests = () => {
             // Apply Role-Based Default Filtering
             if (isFinance) {
                 // Finance only sees these statuses
-                query = query.in('status', ['Approved', 'SJ Issued', 'Partial Fulfillment', 'Completed']);
+                query = query.in('status', ['Approved', 'SJ Issued', 'Partial Fulfillment', 'PICKING', 'On Delivery', 'Delivered', 'Completed']);
             } else if (isMD) {
                 // MD sees these by default but can search others
                 // Actually MD cares most about Under Review and Adjusted

@@ -195,7 +195,7 @@ export const AdminRequestDetail = () => {
     
     // Finance allowed actions
     const canFinanceSJ = isFinance && ['Approved', 'PICKING', 'On Delivery', 'Delivered', 'Partial Fulfillment'].includes(request.status);
-    const financeStatusOptions = ['PICKING', 'On Delivery', 'Delivered'];
+    const financeStatusOptions = ['PICKING', 'On Delivery', 'Delivered', 'Completed'];
     const canChangeFinanceStatus = isFinance && sj.length > 0;
 
     const getStatusColor = (status: string) => {
