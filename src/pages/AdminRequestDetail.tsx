@@ -136,14 +136,15 @@ export const AdminRequestDetail = () => {
         if (!id || !newSjNumber.trim()) return;
         setIsProcessing(true);
         try {
-            // Insert into surat_jalan
+            // Insert into surat_jalan with default status 'PICKING'
             const { error: sjErr } = await supabase.from('surat_jalan').insert([{
                 request_id: id,
-                sj_number: newSjNumber.trim()
+                sj_number: newSjNumber.trim(),
+                status: 'PICKING'
             }]);
             if (sjErr) throw sjErr;
 
-            // Change status to PICKING if it's currently Approved (or keep tracking)
+            // Update request status to PICKING if it's currently Approved
             if (request.status === 'Approved') {
                 const { error: updErr } = await supabase.from('requests').update({ status: 'PICKING' }).eq('id', id);
                 if (updErr) throw updErr;
@@ -158,17 +159,44 @@ export const AdminRequestDetail = () => {
         }
     };
 
-    const updateFinanceStatus = async (newStatus: string) => {
+    const updateSjStatus = async (sjId: string, newStatus: string) => {
         if (!id) return;
         setIsProcessing(true);
         try {
-            const { error } = await supabase.from('requests').update({ status: newStatus }).eq('id', id);
-            if (error) throw error;
+            // 1. Update the individual SJ status
+            const { error: sjErr } = await supabase.from('surat_jalan').update({ status: newStatus }).eq('id', sjId);
+            if (sjErr) throw sjErr;
+
+            // 2. Fetch all SJs for this request to calculate derived status
+            const { data: allSjas, error: fetchErr } = await supabase.from('surat_jalan').select('status').eq('request_id', id);
+            if (fetchErr) throw fetchErr;
+
+            // 3. Derived Progress Logic
+            let finalRequestStatus = 'PICKING';
+            const statuses = (allSjas || []).map(s => s.status);
+            const allDelivered = statuses.every(s => s === 'Delivered');
+            const someDelivered = statuses.some(s => s === 'Delivered');
+            const anyOnDelivery = statuses.some(s => s === 'On Delivery');
+
+            if (allDelivered) {
+                finalRequestStatus = 'Completed';
+            } else if (someDelivered) {
+                finalRequestStatus = 'Partially Completed';
+            } else if (anyOnDelivery) {
+                finalRequestStatus = 'On Delivery';
+            } else {
+                finalRequestStatus = 'PICKING';
+            }
+
+            // 4. Update request status
+            const { error: reqErr } = await supabase.from('requests').update({ status: finalRequestStatus }).eq('id', id);
+            if (reqErr) throw reqErr;
+
             await fetchRequestData();
         } catch (err: any) {
-             alert(`Error updating status: ${err.message}`);
+            alert(`Error updating SJ status: ${err.message}`);
         } finally {
-             setIsProcessing(false);
+            setIsProcessing(false);
         }
     };
 
@@ -194,9 +222,8 @@ export const AdminRequestDetail = () => {
     const canMDApprove = isMD && isPendingMD;
     
     // Finance allowed actions
-    const canFinanceSJ = isFinance && ['Approved', 'PICKING', 'On Delivery', 'Delivered', 'Partial Fulfillment'].includes(request.status);
-    const financeStatusOptions = ['PICKING', 'On Delivery', 'Delivered', 'Completed'];
-    const canChangeFinanceStatus = isFinance && sj.length > 0;
+    const canFinanceSJ = isFinance && ['Approved', 'PICKING', 'On Delivery', 'Delivered', 'Partial Fulfillment', 'Partially Completed'].includes(request.status);
+    const sjStatusOptions = ['PICKING', 'On Delivery', 'Delivered'];
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -209,6 +236,7 @@ export const AdminRequestDetail = () => {
             case 'Delivered': return 'bg-emerald-600 text-white border-emerald-600';
             case 'SJ Issued': return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'Partial Fulfillment': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+            case 'Partially Completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
             case 'Completed': return 'bg-zinc-900 text-white border-zinc-900';
             case 'Rejected': return 'bg-red-100 text-red-800 border-red-200';
             default: return 'bg-slate-100 text-slate-700 border-slate-200';
@@ -335,14 +363,38 @@ export const AdminRequestDetail = () => {
                             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Attached SJ Numbers</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                 {sj.map(s => (
-                                    <div key={s.id} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center gap-3">
-                                        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-                                            <FileOutput size={16} />
+                                    <div key={s.id} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex flex-col gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                                                <FileOutput size={16} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-mono font-bold text-slate-900">{s.sj_number}</p>
+                                                <p className="text-[10px] text-slate-400 mt-0.5 uppercase tracking-widest">{new Date(s.created_at).toLocaleString()}</p>
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${getStatusColor(s.status)}`}>
+                                                {s.status}
+                                            </span>
                                         </div>
-                                        <div>
-                                            <p className="font-mono font-bold text-slate-900">{s.sj_number}</p>
-                                            <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">{new Date(s.created_at).toLocaleString()}</p>
-                                        </div>
+                                        
+                                        {isFinance && (
+                                            <div className="flex items-center gap-1.5 p-1 bg-slate-50 rounded-lg border border-slate-100">
+                                                {sjStatusOptions.map(opt => (
+                                                    <button
+                                                        key={opt}
+                                                        onClick={() => updateSjStatus(s.id, opt)}
+                                                        disabled={isProcessing || s.status === opt}
+                                                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase tracking-tight transition-all ${
+                                                            s.status === opt 
+                                                            ? 'bg-white shadow-sm text-indigo-700 border border-slate-200' 
+                                                            : 'text-slate-400 hover:text-slate-600'
+                                                        }`}
+                                                    >
+                                                        {opt}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -356,11 +408,14 @@ export const AdminRequestDetail = () => {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {sj.map(s => (
-                            <div key={s.id} className="bg-white border border-slate-200 p-4 rounded-xl flex items-center gap-3">
-                                <FileOutput size={16} className="text-indigo-600" />
-                                <div>
+                            <div key={s.id} className="bg-white border border-slate-200 p-4 rounded-xl flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <FileOutput size={16} className="text-indigo-600" />
                                     <p className="font-mono font-bold text-slate-900">{s.sj_number}</p>
                                 </div>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${getStatusColor(s.status)}`}>
+                                    {s.status}
+                                </span>
                             </div>
                         ))}
                     </div>
@@ -368,23 +423,10 @@ export const AdminRequestDetail = () => {
             )}
 
             {/* Action Bar */}
-            {(canMDApprove || canFinanceSJ || canChangeFinanceStatus) && (
+            {(canMDApprove || canFinanceSJ) && (
                 <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap justify-end gap-3 sticky bottom-4 z-10">
                     
-                    {canChangeFinanceStatus && (
-                        <div className="flex items-center gap-2 mr-auto bg-slate-50 p-1.5 rounded-xl border border-slate-200">
-                            {financeStatusOptions.map(st => (
-                                <button
-                                    key={st}
-                                    onClick={() => updateFinanceStatus(st)}
-                                    disabled={isProcessing || request.status === st}
-                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${request.status === st ? 'bg-white shadow-sm text-indigo-700 pointer-events-none' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}
-                                >
-                                    {st}
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                    {/* Old global status controls removed in favor of per-SJ controls */}
 
                     {canMDApprove && (
                         <>

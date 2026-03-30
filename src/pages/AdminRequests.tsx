@@ -34,6 +34,9 @@ export const AdminRequests = () => {
                     request_items (
                         requested_qty,
                         allocated_qty
+                    ),
+                    surat_jalan (
+                        sj_number
                     )
                 `)
                 .order('created_at', { ascending: false });
@@ -41,7 +44,7 @@ export const AdminRequests = () => {
             // Apply Role-Based Default Filtering
             if (isFinance) {
                 // Finance only sees these statuses
-                query = query.in('status', ['Approved', 'SJ Issued', 'Partial Fulfillment', 'PICKING', 'On Delivery', 'Delivered', 'Completed']);
+                query = query.in('status', ['Approved', 'SJ Issued', 'Partial Fulfillment', 'PICKING', 'On Delivery', 'Delivered', 'Partially Completed', 'Completed']);
             } else if (isMD) {
                 // MD sees these by default but can search others
                 // Actually MD cares most about Under Review and Adjusted
@@ -65,6 +68,7 @@ export const AdminRequests = () => {
             case 'Approved': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
             case 'SJ Issued': return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'Partial Fulfillment': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+            case 'Partially Completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
             case 'Completed': return 'bg-zinc-900 text-white border-zinc-900';
             case 'Rejected': return 'bg-red-100 text-red-800 border-red-200';
             default: return 'bg-slate-100 text-slate-700 border-slate-200';
@@ -105,7 +109,7 @@ export const AdminRequests = () => {
     });
 
     const filterOptions = isFinance 
-        ? ['All Active', 'Pending Finance Action', 'SJ Issued', 'Completed', 'All Statuses']
+        ? ['All Active', 'Pending Finance Action', 'SJ Issued', 'Partially Completed', 'Completed', 'All Statuses']
         : ['All Active', 'Pending MD Action', 'Approved', 'Rejected', 'All Statuses'];
 
     return (
@@ -178,6 +182,7 @@ export const AdminRequests = () => {
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Request ID</th>
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Date (WIB)</th>
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Items (Req/Alloc)</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Surat Jalan</th>
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Role</th>
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
                                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
@@ -199,6 +204,19 @@ export const AdminRequests = () => {
                                             <td className="px-6 py-5 text-sm text-slate-600 font-medium">{dateStr}</td>
                                             <td className="px-6 py-5 text-right font-medium text-slate-700">
                                                 {totalAllocated} <span className="text-slate-400 font-normal">/ {totalRequested}</span>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <div className="flex flex-wrap gap-1 max-w-[200px]">
+                                                    {req.surat_jalan && req.surat_jalan.length > 0 ? (
+                                                        req.surat_jalan.map((s: any) => (
+                                                            <span key={s.sj_number} className="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-[10px] uppercase font-bold tracking-widest text-blue-700 border border-blue-100">
+                                                                {s.sj_number}
+                                                            </span>
+                                                        ))
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400 italic">None</span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-5">
                                                 <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-[10px] uppercase font-bold tracking-widest text-slate-600 border border-slate-200">
