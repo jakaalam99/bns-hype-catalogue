@@ -14,8 +14,10 @@ export const CatalogueLayout = () => {
     const { settings } = useStoreSettings();
     const { totalCount } = useBasket();
     const user = useAuthStore(state => state.user);
-    const requestorRoles = ['putus', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
-    const isRequestor = requestorRoles.some(r => r.toUpperCase() === (user?.user_metadata?.role || '').toUpperCase());
+    const requestorRoles = ['PARTNER', 'PUTUS', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
+    const userRole = (user?.user_metadata?.role || '').toUpperCase();
+    const isRequestor = requestorRoles.some(r => r === userRole);
+    const isPartner = userRole === 'PARTNER';
     const [animateBasket, setAnimateBasket] = useState(false);
     const location = useLocation();
     const [activePrograms, setActivePrograms] = useState<Program[]>([]);
@@ -89,12 +91,12 @@ export const CatalogueLayout = () => {
 
                 <div className="p-4 flex-1 flex flex-col space-y-2">
                     <Link
-                        to="/"
+                        to={isPartner ? "/partner/workspace" : "/"}
                         onClick={() => setIsSidebarOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${location.pathname === '/' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${(location.pathname === '/' || location.pathname === '/partner/workspace') ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
                     >
                         <Home size={18} />
-                        Catalogue
+                        {isPartner ? 'Partner Workspace' : 'Catalogue'}
                     </Link>
                     <Link
                         to="/about"
@@ -112,7 +114,7 @@ export const CatalogueLayout = () => {
                         <Tag size={18} />
                         Brand Guidance
                     </Link>
-                    {isRequestor && (
+                    {isRequestor && !isPartner && (
                         <Link
                             to="/basket"
                             onClick={() => setIsSidebarOpen(false)}
@@ -129,7 +131,7 @@ export const CatalogueLayout = () => {
                             My Basket
                         </Link>
                     )}
-                    {isRequestor && (
+                    {isRequestor && !isPartner && (
                         <Link
                             to="/requests"
                             onClick={() => setIsSidebarOpen(false)}
@@ -139,7 +141,6 @@ export const CatalogueLayout = () => {
                             Request History
                         </Link>
                     )}
-
                     {activePrograms.length > 0 && (
                         <div className="pt-4 pb-2">
                             <h3 className="px-4 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
@@ -214,19 +215,19 @@ export const CatalogueLayout = () => {
 
                     {/* Center: Title */}
                     <div className="flex flex-col items-center justify-center text-center">
-                        <Link to="/" className="group">
+                        <Link to={isPartner ? "/partner/workspace" : "/"} className="group">
                             <h1 className="font-sans font-black text-2xl sm:text-3xl tracking-[0.2em] leading-none text-foreground uppercase">
                                 BNS HYPE
                             </h1>
                             <p className="text-[10px] sm:text-xs text-slate-500 font-black uppercase tracking-[0.4em] mt-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                                Catalogue
+                                {isPartner ? 'Partner Portal' : 'Catalogue'}
                             </p>
                         </Link>
                     </div>
 
                     {/* Right: Basket Button - Restricted to requestors */}
                     <div className="flex justify-end items-center">
-                        {isRequestor && (
+                        {isRequestor && !isPartner && (
                             <Link
                                 to="/basket"
                                 className={`p-2 relative flex items-center justify-center hover:bg-black/5 rounded-lg transition-all group ${animateBasket ? 'scale-125' : 'scale-100'}`}
@@ -239,12 +240,23 @@ export const CatalogueLayout = () => {
                                 )}
                             </Link>
                         )}
+                        {isPartner && (
+                             <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setIsSidebarOpen(true)}>
+                                <div className="text-right hidden sm:block">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Partner Draft</p>
+                                    <p className="text-xs font-bold text-slate-900 leading-none mt-1">{totalCount} items</p>
+                                </div>
+                                <div className={`w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 group-hover:bg-black group-hover:text-white transition-all ${animateBasket ? 'scale-110 border-indigo-500' : ''}`}>
+                                    <Search size={18} />
+                                </div>
+                             </div>
+                        )}
                     </div>
                 </div>
             </header>
 
-            {/* Floating Bottom Search Bar */}
-            {location.pathname === '/' && (
+            {/* Floating Bottom Search Bar - Hidden for Partners as they have it in-page */}
+            {location.pathname === '/' && !isPartner && (
                 <div className="fixed bottom-6 left-0 right-0 z-40 px-3 sm:px-6 pointer-events-none">
                     <div className="max-w-7xl mx-auto flex justify-center">
                         <div className="relative w-full max-w-[95vw] sm:max-w-3xl pointer-events-auto">

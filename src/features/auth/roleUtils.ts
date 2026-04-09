@@ -1,6 +1,6 @@
 export const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN', 'MD', 'MERCHANDISER', 'ADMINISTRATOR'];
 export const FINANCE_ROLES = ['FINANCE', 'ACCOUNTING'];
-export const REQUESTOR_ROLES = ['PUTUS', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
+export const REQUESTOR_ROLES = ['PARTNER', 'PUTUS', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
 
 export const hasDashboardAccess = (role: any): boolean => {
     if (!role) return false;

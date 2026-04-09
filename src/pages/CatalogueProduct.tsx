@@ -23,8 +23,10 @@ export const CatalogueProduct = () => {
     const [addedToBasket, setAddedToBasket] = useState(false);
     const { addToBasket } = useBasket();
     const user = useAuthStore(state => state.user);
-    const requestorRoles = ['putus', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
-    const isRequestor = requestorRoles.some(r => r.toUpperCase() === (user?.user_metadata?.role || '').toUpperCase());
+    const userRole = (user?.user_metadata?.role || '').toUpperCase();
+    const requestorRoles = ['PARTNER', 'PUTUS', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
+    const isRequestor = requestorRoles.some(r => r === userRole);
+    const isPartner = userRole === 'PARTNER';
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isZoomed) return;
@@ -271,12 +273,12 @@ export const CatalogueProduct = () => {
                                     {addedToBasket ? (
                                         <>
                                             <CheckCircle2 size={20} />
-                                            Added to Basket
+                                            {isPartner ? 'Drafted' : 'Added to Basket'}
                                         </>
                                     ) : (
                                         <>
                                             <ShoppingCart size={20} />
-                                            Add to Basket
+                                            {isPartner ? 'Add to Draft' : 'Add to Basket'}
                                         </>
                                     )}
                                 </button>

@@ -59,20 +59,17 @@ export const Catalogue = () => {
     const [categories, setCategories] = useState<string[]>([]);
 
     useEffect(() => {
-        // Fetch valid options for the filters dynamically based on current selections
         const fetchFilterOptions = async () => {
             try {
-                // Fetch valid categories based on current brand and search
-                let catQuery = supabase.from('products').select('category').eq('is_active', true);
-                if (brandFilter) catQuery = catQuery.eq('brand', brandFilter);
-                if (searchQuery.trim()) catQuery = catQuery.or(`name.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`);
+                const { data, error } = await supabase.rpc('get_filtered_categories', {
+                    search_text: searchQuery,
+                    brand_text: brandFilter
+                });
 
-                const { data: catData } = await catQuery.limit(1000);
-                if (catData) {
-                    const uniqueCats = Array.from(new Set(catData.map(p => p.category).filter(Boolean))) as string[];
-                    setCategories(uniqueCats.sort());
+                if (error) throw error;
+                if (data) {
+                    setCategories(data.map((row: any) => row.category));
                 }
-
             } catch (err) {
                 console.error("Failed to load dynamic filters", err);
             }

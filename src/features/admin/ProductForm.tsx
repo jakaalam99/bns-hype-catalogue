@@ -158,8 +158,10 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
             if (images.length > 0 && product) {
                 const imagePromises = images.map(async (file, index) => {
                     const fileExt = file.name.split('.').pop();
-                    const fileName = `${product.id}/${Math.random()}.${fileExt}`;
-
+                    // Use SKU for folder naming and include secondary index + timestamp for uniqueness
+                    const timestamp = Date.now();
+                    const fileName = `${product.sku}/${index}_${timestamp}.${fileExt}`;
+                    
                     // Upload to storage
                     const { error: uploadError } = await supabase.storage
                         .from('product-images')

@@ -9,6 +9,7 @@ import { Catalogue } from './pages/Catalogue'
 import { AdminProducts } from './pages/AdminProducts'
 import { AdminPrograms } from './pages/AdminPrograms'
 import { CatalogueProduct } from './pages/CatalogueProduct'
+import { PartnerCatalogue } from './pages/PartnerCatalogue'
 import { ProgramCatalogue } from './pages/ProgramCatalogue'
 import { AdminGeneralSettings } from './pages/settings/AdminGeneralSettings'
 import { AdminSocialSettings } from './pages/settings/AdminSocialSettings'
@@ -46,7 +47,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<CatalogueLayout />}>
-              <Route index element={<Catalogue />} />
+              <Route index element={<CatalogueIndex />} />
               <Route path="about" element={<About />} />
               <Route path="brand-guidance" element={<BrandGuidance />} />
               <Route path="basket" element={
@@ -61,6 +62,11 @@ function App() {
               } />
               <Route path="product/:id" element={<CatalogueProduct />} />
               <Route path="program/:id" element={<ProgramCatalogue />} />
+              <Route path="partner/workspace" element={
+                <ProtectedRoute allowRoles={['partner']}>
+                  <PartnerCatalogue />
+                </ProtectedRoute>
+              } />
             </Route>
 
             {/* Admin Routes */}
@@ -109,6 +115,16 @@ function AdminIndexRedirect() {
     return <Navigate to="/admin/dashboard" replace />;
   }
   return <Navigate to="/admin/requests" replace />;
+}
+
+function CatalogueIndex() {
+  const { user } = useAuthStore();
+  const role = (user?.user_metadata?.role || '').toUpperCase();
+  
+  if (role === 'PARTNER') {
+    return <Navigate to="/partner/workspace" replace />;
+  }
+  return <Catalogue />;
 }
 
 export default App

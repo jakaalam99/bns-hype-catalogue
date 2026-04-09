@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { ProductWithImages } from '../types/product';
-import { Loader2, Plus, Search, FileDown, FileUp, Trash2, Edit, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Plus, Search, FileDown, FileUp, Trash2, Edit, Eye, EyeOff, Image as ImageIcon } from 'lucide-react';
 import { ProductForm } from '../features/admin/ProductForm';
+import { BulkImageMatchForm } from '../features/admin/BulkImageMatchForm';
 import { ImportCSVForm } from '../features/admin/ImportCSVForm';
 import { ImportStockCSVForm } from '../features/admin/ImportStockCSVForm';
 import { BatchVisibilityForm } from '../features/admin/BatchVisibilityForm';
@@ -13,6 +14,7 @@ export const AdminProducts = () => {
     const [products, setProducts] = useState<ProductWithImages[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isBulkImageOpen, setIsBulkImageOpen] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isCSVOpen, setIsCSVOpen] = useState(false);
     const [isStockCSVOpen, setIsStockCSVOpen] = useState(false);
@@ -21,6 +23,13 @@ export const AdminProducts = () => {
     const [programs, setPrograms] = useState<any[]>([]);
     const [imageFilter, setImageFilter] = useState<'all' | 'with_images' | 'no_images'>('all');
     const [statusTab, setStatusTab] = useState<'all' | 'active' | 'hidden'>('all');
+    
+    // Pagination & Counts
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [counts, setCounts] = useState({ all: 0, active: 0, hidden: 0 });
+    const PAGE_SIZE = 100;
 
 
     // Sorting
@@ -28,40 +37,77 @@ export const AdminProducts = () => {
     const [sortAscending, setSortAscending] = useState<boolean>(false);
 
     useEffect(() => {
-        fetchProducts();
+        fetchProducts(1, true);
+        fetchCounts();
     }, [sortColumn, sortAscending]);
 
-    const fetchProducts = async () => {
-        setLoading(true);
+    const fetchCounts = async () => {
         try {
-            // Using Supabase to fetch products and eagerly load their images
+            const { count: allCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
+            const { count: activeCount } = await supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true);
+            const { count: hiddenCount } = await supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', false);
+            
+            setCounts({
+                all: allCount || 0,
+                active: activeCount || 0,
+                hidden: hiddenCount || 0
+            });
+        } catch (err) {
+            console.error("Error fetching counts:", err);
+        }
+    };
+
+    const fetchProducts = async (pageNumber: number = 1, isInitial: boolean = false) => {
+        if (isInitial) {
+            setLoading(true);
+            setPage(1);
+        } else {
+            setLoadingMore(true);
+        }
+
+        try {
+            const from = (pageNumber - 1) * PAGE_SIZE;
+            const to = from + PAGE_SIZE - 1;
+
             const { data, error } = await supabase
                 .from('products')
                 .select(`
                     *,
                     images:product_images(*)
                 `)
-                .order(sortColumn, { ascending: sortAscending });
+                .order(sortColumn, { ascending: sortAscending })
+                .range(from, to);
 
             if (error) throw error;
 
-            // Also fetch active programs to associate with products for export
-            const { data: programsData, error: progError } = await supabase
-                .from('programs')
-                .select('*')
-                .eq('is_active', true);
+            if (isInitial) {
+                setProducts(data as any);
+            } else {
+                setProducts(prev => [...prev, ...(data as any)]);
+            }
 
-            if (progError) console.error("Could not fetch programs for export:", progError);
-            else setPrograms(programsData || []);
+            setHasMore(data.length === PAGE_SIZE);
 
-            // Format the images array since postgrest might return slightly differently
-            console.log('AdminProducts: Fetched products sample:', data ? data[0] : 'null');
-            setProducts(data as any);
+            if (isInitial) {
+                const { data: programsData, error: progError } = await supabase
+                    .from('programs')
+                    .select('*')
+                    .eq('is_active', true);
+                if (progError) console.error("Could not fetch programs for export:", progError);
+                else setPrograms(programsData || []);
+            }
         } catch (error) {
             console.error('Error fetching products:', error);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
+    };
+
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchProducts(nextPage);
     };
 
     const deleteProduct = async (id: string) => {
@@ -70,7 +116,8 @@ export const AdminProducts = () => {
         try {
             const { error } = await supabase.from('products').delete().eq('id', id);
             if (error) throw error;
-            fetchProducts();
+            fetchProducts(1, true);
+            fetchCounts();
         } catch (error: any) {
             console.error("Error deleting product", error);
             alert("Failed to delete product: " + error.message);
@@ -220,6 +267,13 @@ export const AdminProducts = () => {
                         Batch Visibility
                     </button>
                     <button
+                        onClick={() => setIsBulkImageOpen(true)}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors text-sm font-bold shadow-sm"
+                    >
+                        <ImageIcon size={16} />
+                        Bulk Image Match
+                    </button>
+                    <button
                         onClick={() => {
                             setEditingProduct(null);
                             setIsFormOpen(true);
@@ -274,7 +328,7 @@ export const AdminProducts = () => {
                     >
                         All
                         <span className="ml-2 px-1.5 py-0.5 rounded-md bg-slate-100 text-[10px] text-slate-500">
-                            {products.length}
+                            {counts.all}
                         </span>
                         {statusTab === 'all' && (
                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600" />
@@ -289,7 +343,7 @@ export const AdminProducts = () => {
                     >
                         Active
                         <span className="ml-2 px-1.5 py-0.5 rounded-md bg-emerald-50 text-[10px] text-emerald-600">
-                            {products.filter(p => p.is_active).length}
+                            {counts.active}
                         </span>
                         {statusTab === 'active' && (
                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600" />
@@ -304,7 +358,7 @@ export const AdminProducts = () => {
                     >
                         Hidden
                         <span className="ml-2 px-1.5 py-0.5 rounded-md bg-red-50 text-[10px] text-red-600">
-                            {products.filter(p => !p.is_active).length}
+                            {counts.hidden}
                         </span>
                         {statusTab === 'hidden' && (
                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600" />
@@ -386,7 +440,12 @@ export const AdminProducts = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-slate-500 font-mono">
-                                                {product.sku}
+                                                <div>{product.sku}</div>
+                                                {primaryImage && (
+                                                    <div className="text-[9px] text-slate-400 mt-1 truncate max-w-[150px]" title={primaryImage.image_url}>
+                                                        File: {primaryImage.image_url}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-sm">
                                                 {product.discount_price ? (
@@ -447,13 +506,21 @@ export const AdminProducts = () => {
                     </table>
                 </div>
 
-                {/* Pagination Placeholder */}
-                <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                    <p className="text-xs text-slate-500 font-medium">Showing {products.length} products</p>
-                    <div className="flex gap-2">
-                        <button disabled className="px-3 py-1 text-xs font-medium border border-slate-200 rounded text-slate-400 bg-slate-50 cursor-not-allowed">Previous</button>
-                        <button disabled className="px-3 py-1 text-xs font-medium border border-slate-200 rounded text-slate-400 bg-slate-50 cursor-not-allowed">Next</button>
-                    </div>
+                {/* Pagination Controls */}
+                <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p className="text-xs text-slate-500 font-medium tracking-tight">
+                        Showing <span className="text-slate-900 font-bold">{products.length}</span> of <span className="text-slate-900 font-bold">{counts.all}</span> products
+                    </p>
+                    {hasMore && (
+                        <button 
+                            onClick={handleLoadMore}
+                            disabled={loadingMore}
+                            className="w-full sm:w-auto px-6 py-2 bg-white border border-slate-200 text-slate-900 font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+                        >
+                            {loadingMore ? <Loader2 size={14} className="animate-spin" /> : null}
+                            {loadingMore ? 'Loading...' : 'Load More Products'}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -463,7 +530,8 @@ export const AdminProducts = () => {
                     onClose={() => setIsFormOpen(false)}
                     onSuccess={() => {
                         setIsFormOpen(false);
-                        fetchProducts();
+                        fetchProducts(1, true);
+                        fetchCounts();
                     }}
                 />
             )}
@@ -473,7 +541,8 @@ export const AdminProducts = () => {
                     onClose={() => setIsCSVOpen(false)}
                     onSuccess={() => {
                         setIsCSVOpen(false);
-                        fetchProducts();
+                        fetchProducts(1, true);
+                        fetchCounts();
                     }}
                 />
             )}
@@ -493,7 +562,18 @@ export const AdminProducts = () => {
                     onClose={() => setIsBatchVisibleOpen(false)}
                     onSuccess={() => {
                         setIsBatchVisibleOpen(false);
-                        fetchProducts();
+                        fetchProducts(1, true);
+                        fetchCounts();
+                    }}
+                />
+            )}
+            {isBulkImageOpen && (
+                <BulkImageMatchForm
+                    onClose={() => setIsBulkImageOpen(false)}
+                    onSuccess={() => {
+                        setIsBulkImageOpen(false);
+                        fetchProducts(1, true);
+                        fetchCounts();
                     }}
                 />
             )}
