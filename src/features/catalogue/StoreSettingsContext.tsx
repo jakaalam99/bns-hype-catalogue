@@ -39,6 +39,7 @@ export const StoreSettingsProvider = ({ children }: { children: ReactNode }) => 
                         offline_stores: [],
                         social_links: [],
                         marketplace_links: [],
+                        hide_out_of_stock: false,
                         updated_at: new Date().toISOString()
                     });
                     return;
