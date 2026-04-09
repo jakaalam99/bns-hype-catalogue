@@ -123,7 +123,7 @@ export const AdminLayout = () => {
                         }
                     >
                         <Settings size={18} />
-                        General Information
+                        General & Catalogue
                     </NavLink>
 
                     <NavLink
@@ -310,7 +310,7 @@ export const AdminLayout = () => {
                         }
                     >
                         <Settings size={18} />
-                        General Information
+                        General & Catalogue
                     </NavLink>
 
                     <NavLink

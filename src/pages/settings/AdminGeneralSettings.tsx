@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Loader2, Save, Store } from 'lucide-react';
+import { Loader2, Save, Store, SlidersHorizontal } from 'lucide-react';
 import type { StoreSettings } from '../../types/settings';
 import { useStoreSettings } from '../../features/catalogue/StoreSettingsContext';
 
@@ -50,6 +50,7 @@ export const AdminGeneralSettings = () => {
                     about_text: settings.about_text,
                     favicon_url: settings.favicon_url,
                     contact_url: settings.contact_url,
+                    hide_out_of_stock: settings.hide_out_of_stock,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', 1);
@@ -125,6 +126,37 @@ export const AdminGeneralSettings = () => {
                                 placeholder="https://forms.gle/..."
                             />
                             <p className="text-xs text-slate-500 mt-1">This link will be used for the "Contact us" button on product detail pages.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Catalogue Preferences */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50">
+                        <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                            <SlidersHorizontal className="text-indigo-600" size={18} />
+                            Catalogue Preferences
+                        </h2>
+                    </div>
+                    <div className="p-6">
+                        <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                            <div className="space-y-0.5">
+                                <label className="text-sm font-bold text-slate-900 cursor-pointer" htmlFor="hide_out_of_stock_toggle">
+                                    Hide Out-of-Stock Items
+                                </label>
+                                <p className="text-xs text-slate-500">Automatically hide products with zero total stock from the catalogue.</p>
+                            </div>
+                            <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 cursor-pointer transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <input
+                                    id="hide_out_of_stock_toggle"
+                                    type="checkbox"
+                                    checked={settings.hide_out_of_stock}
+                                    onChange={(e) => setSettings({ ...settings, hide_out_of_stock: e.target.checked })}
+                                    className="sr-only peer"
+                                />
+                                <div className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${settings.hide_out_of_stock ? 'translate-x-6' : 'translate-x-1'}`} />
+                                <div className={`absolute inset-0 rounded-full transition-colors ${settings.hide_out_of_stock ? 'bg-indigo-600' : 'bg-slate-200'}`} style={{ zIndex: -1 }} />
+                            </div>
                         </div>
                     </div>
                 </div>
