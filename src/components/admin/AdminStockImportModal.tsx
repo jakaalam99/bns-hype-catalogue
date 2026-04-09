@@ -13,7 +13,6 @@ export const AdminStockImportModal: React.FC<SetupStepProps> = ({ isOpen, onClos
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [progress, setProgress] = useState<{ processed: number, total: number } | null>(null);
     const [summary, setSummary] = useState<{ processed: number, updated: number, skipped: number } | null>(null);
 
@@ -23,7 +22,7 @@ export const AdminStockImportModal: React.FC<SetupStepProps> = ({ isOpen, onClos
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
             setError(null);
-            setSuccessMessage(null);
+            setSummary(null);
         }
     };
 
@@ -166,7 +165,8 @@ export const AdminStockImportModal: React.FC<SetupStepProps> = ({ isOpen, onClos
                 updated: totalPayload.length,
                 skipped: skippedSkus
             });
-            setSuccessMessage(`Import Complete!`);
+            // All successful updates are tracked in the summary state now.
+
             
         } catch (err: any) {
             console.error(err);
