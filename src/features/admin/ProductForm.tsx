@@ -27,6 +27,10 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
         price: ''
     });
 
+    // Primary Image selection states
+    const [primaryImageId, setPrimaryImageId] = useState<string | null>(null);
+    const [newPrimaryIndex, setNewPrimaryIndex] = useState<number | null>(null);
+
     const [discountType, setDiscountType] = useState<'none' | 'price' | 'percentage' | 'amount'>('none');
     const [discountValue, setDiscountValue] = useState<string>('');
 
@@ -51,7 +55,15 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
 
             if (productToEdit.images) {
                 // Keep existing images separate from new file uploads for rendering
-                setExistingImages(productToEdit.images.sort((a: any, b: any) => a.display_order - b.display_order));
+                const sorted = productToEdit.images.sort((a: any, b: any) => a.display_order - b.display_order);
+                setExistingImages(sorted);
+                
+                // Set initial primary image
+                const primary = sorted.find((img: any) => img.display_order === 0);
+                if (primary) {
+                    setPrimaryImageId(primary.id);
+                    setNewPrimaryIndex(null);
+                }
             }
         }
     }, [productToEdit]);
@@ -154,30 +166,59 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                 product = data;
             }
 
-            // 2. Upload Images and link them
-            if (images.length > 0 && product) {
-                const imagePromises = images.map(async (file, index) => {
-                    const fileExt = file.name.split('.').pop();
-                    // Use SKU for folder naming and include secondary index + timestamp for uniqueness
-                    const timestamp = Date.now();
-                    const fileName = `${product.sku}/${index}_${timestamp}.${fileExt}`;
+            // 2. Handle Image Ordering and Uploads
+            if (product) {
+                // A. Reset existing images ordering if primary selection changed
+                // (or if we are Adding a new primary from the 'new files' list)
+                const shouldResetExisting = (primaryImageId !== null) || (newPrimaryIndex !== null);
+                
+                if (shouldResetExisting) {
+                    // Set all existing images to secondary (1)
+                    await supabase.from('product_images').update({ display_order: 1 }).eq('product_id', product.id);
                     
-                    // Upload to storage
-                    const { error: uploadError } = await supabase.storage
-                        .from('product-images')
-                        .upload(fileName, file);
+                    // If one of these existing images is specifically chosen as primary, set it to 0
+                    if (primaryImageId) {
+                        await supabase.from('product_images').update({ display_order: 0 }).eq('id', primaryImageId);
+                    }
+                }
 
-                    if (uploadError) throw uploadError;
+                // B. Upload new images and link them
+                if (images.length > 0) {
+                    const imagePromises = images.map(async (file, index) => {
+                        const fileExt = file.name.split('.').pop();
+                        const shortHash = Math.random().toString(36).substring(2, 6);
+                        const fileName = `${product.sku}/${product.sku}_${index}_${shortHash}.${fileExt}`;
+                        
+                        // Decide display order
+                        // Logic: 
+                        // 1. If this index is our newPrimaryIndex, it is 0.
+                        // 2. If no primary was set yet (newly created product) and it is the first image, it is 0.
+                        // 3. Otherwise, it is a secondary image (set to a higher order or 1).
+                        let displayOrder = index + 1; // Default secondary
+                        if (index === newPrimaryIndex) {
+                            displayOrder = 0;
+                        } else if (newPrimaryIndex === null && primaryImageId === null && index === 0 && existingImages.length === 0) {
+                            // First ever image for a brand new product
+                            displayOrder = 0;
+                        }
 
-                    // Insert record in DB
-                    return supabase.from('product_images').insert({
-                        product_id: product.id,
-                        image_url: fileName,
-                        display_order: index
+                        // Upload to storage
+                        const { error: uploadError } = await supabase.storage
+                            .from('product-images')
+                            .upload(fileName, file);
+
+                        if (uploadError) throw uploadError;
+
+                        // Insert record in DB
+                        return supabase.from('product_images').insert({
+                            product_id: product.id,
+                            image_url: fileName,
+                            display_order: displayOrder
+                        });
                     });
-                });
 
-                await Promise.all(imagePromises);
+                    await Promise.all(imagePromises);
+                }
             }
 
             onSuccess();
@@ -397,9 +438,13 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                             <label className="block text-sm font-medium text-slate-700 mb-3">Product Images</label>
 
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                                {existingImages.map((img, index) => (
-                                    <div key={`existing-${index}`} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group">
+                                {existingImages.map((img) => (
+                                    <div key={img.id} className={`relative aspect-square rounded-xl overflow-hidden border transition-all ${primaryImageId === img.id ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-lg' : 'border-slate-200 group'}`}>
                                         <img src={supabase.storage.from('product-images').getPublicUrl(img.image_url).data.publicUrl} alt="Existing" className="w-full h-full object-cover" />
+                                        
+                                        {/* Actions Layer */}
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                                        
                                         <button
                                             type="button"
                                             onClick={() => removeExistingImage(img.id, img.image_url)}
@@ -408,27 +453,57 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                                         >
                                             <X size={14} />
                                         </button>
-                                        {img.display_order === 0 && (
-                                            <div className="absolute bottom-0 inset-x-0 bg-slate-900/70 text-white text-[10px] uppercase font-bold text-center py-1">
-                                                Primary
+
+                                        {primaryImageId === img.id ? (
+                                            <div className="absolute bottom-0 inset-x-0 bg-indigo-600 text-white text-[9px] uppercase font-black text-center py-1 tracking-widest">
+                                                Thumbnail
                                             </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setPrimaryImageId(img.id);
+                                                    setNewPrimaryIndex(null);
+                                                }}
+                                                className="absolute bottom-2 inset-x-2 py-1.5 bg-white/90 hover:bg-white text-indigo-600 text-[10px] font-bold uppercase rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm border border-indigo-100"
+                                            >
+                                                Use as Thumbnail
+                                            </button>
                                         )}
                                     </div>
                                 ))}
                                 {images.map((file, index) => (
-                                    <div key={`new-${index}`} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group">
+                                    <div key={`new-${index}`} className={`relative aspect-square rounded-xl overflow-hidden border transition-all ${newPrimaryIndex === index ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-lg' : 'border-slate-200 group'}`}>
                                         <img src={URL.createObjectURL(file)} alt="Preview" className="w-full h-full object-cover" />
+                                        
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+
                                         <button
                                             type="button"
-                                            onClick={() => removeImage(index)}
+                                            onClick={() => {
+                                                if (newPrimaryIndex === index) setNewPrimaryIndex(null);
+                                                removeImage(index);
+                                            }}
                                             className="absolute top-2 right-2 p-1.5 bg-white/90 text-slate-700 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white hover:text-red-500 shadow-sm"
                                         >
                                             <X size={14} />
                                         </button>
-                                        {existingImages.length === 0 && index === 0 && (
-                                            <div className="absolute bottom-0 inset-x-0 bg-slate-900/70 text-white text-[10px] uppercase font-bold text-center py-1">
-                                                Primary
+
+                                        {newPrimaryIndex === index || (newPrimaryIndex === null && primaryImageId === null && index === 0 && existingImages.length === 0) ? (
+                                            <div className="absolute bottom-0 inset-x-0 bg-indigo-600 text-white text-[9px] uppercase font-black text-center py-1 tracking-widest">
+                                                Thumbnail
                                             </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setNewPrimaryIndex(index);
+                                                    setPrimaryImageId(null);
+                                                }}
+                                                className="absolute bottom-2 inset-x-2 py-1.5 bg-white/90 hover:bg-white text-indigo-600 text-[10px] font-bold uppercase rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm border border-indigo-100"
+                                            >
+                                                Use as Thumbnail
+                                            </button>
                                         )}
                                     </div>
                                 ))}

@@ -23,12 +23,13 @@ export const AdminProducts = () => {
     const [programs, setPrograms] = useState<any[]>([]);
     const [imageFilter, setImageFilter] = useState<'all' | 'with_images' | 'no_images'>('all');
     const [statusTab, setStatusTab] = useState<'all' | 'active' | 'hidden'>('all');
+    const [stockFilter, setStockFilter] = useState<'all' | 'in_stock' | 'out_of_stock'>('all');
     
     // Pagination & Counts
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
-    const [counts, setCounts] = useState({ all: 0, active: 0, hidden: 0 });
+    const [counts, setCounts] = useState({ all: 0, active: 0, hidden: 0, in_stock: 0, out_of_stock: 0 });
     const PAGE_SIZE = 100;
 
 
@@ -39,19 +40,23 @@ export const AdminProducts = () => {
     useEffect(() => {
         fetchProducts(1, true);
         fetchCounts();
-    }, [sortColumn, sortAscending]);
+    }, [sortColumn, sortAscending, stockFilter]);
 
     const fetchCounts = async () => {
         try {
-            const { count: allCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
-            const { count: activeCount } = await supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true);
-            const { count: hiddenCount } = await supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', false);
+            const { data, error } = await supabase.rpc('get_admin_product_stats');
             
-            setCounts({
-                all: allCount || 0,
-                active: activeCount || 0,
-                hidden: hiddenCount || 0
-            });
+            if (error) throw error;
+            if (data && data[0]) {
+                const stats = data[0];
+                setCounts({
+                    all: stats.total_all || 0,
+                    active: stats.total_active || 0,
+                    hidden: stats.total_hidden || 0,
+                    in_stock: stats.total_in_stock || 0,
+                    out_of_stock: stats.total_out_of_stock || 0
+                });
+            }
         } catch (err) {
             console.error("Error fetching counts:", err);
         }
@@ -69,14 +74,22 @@ export const AdminProducts = () => {
             const from = (pageNumber - 1) * PAGE_SIZE;
             const to = from + PAGE_SIZE - 1;
 
-            const { data, error } = await supabase
-                .from('products')
+            let query = supabase
+                .from('admin_products_view')
                 .select(`
                     *,
                     images:product_images(*)
                 `)
-                .order(sortColumn, { ascending: sortAscending })
-                .range(from, to);
+                .order(sortColumn, { ascending: sortAscending });
+
+            // Apply stock filter
+            if (stockFilter === 'in_stock') {
+                query = query.gt('total_stock', 0);
+            } else if (stockFilter === 'out_of_stock') {
+                query = query.lte('total_stock', 0);
+            }
+
+            const { data, error } = await query.range(from, to);
 
             if (error) throw error;
 
@@ -304,7 +317,16 @@ export const AdminProducts = () => {
                         />
                     </form>
 
-                    <div className="flex gap-2 w-full sm:w-auto">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <select
+                            value={stockFilter}
+                            onChange={(e) => setStockFilter(e.target.value as any)}
+                            className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 transition-colors hover:bg-slate-50"
+                        >
+                            <option value="all">All Stock Status</option>
+                            <option value="in_stock">In Stock ({counts.in_stock})</option>
+                            <option value="out_of_stock">Out of Stock ({counts.out_of_stock})</option>
+                        </select>
                         <select
                             value={imageFilter}
                             onChange={(e) => setImageFilter(e.target.value as any)}
@@ -378,6 +400,9 @@ export const AdminProducts = () => {
                                 </th>
                                 <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('price')}>
                                     Price {renderSortIcon('price')}
+                                </th>
+                                <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('total_stock')}>
+                                    Stock {renderSortIcon('total_stock')}
                                 </th>
                                 <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('updated_at')}>
                                     Date Modified {renderSortIcon('updated_at')}
@@ -456,6 +481,16 @@ export const AdminProducts = () => {
                                                 ) : (
                                                     <span className="font-medium text-slate-900">{formatIDR(product.price)}</span>
                                                 )}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`font-bold ${(product as any).total_stock <= 0 ? 'text-red-500' : 'text-slate-900'}`}>
+                                                        {(product as any).total_stock}
+                                                    </span>
+                                                    {(product as any).total_stock <= 3 && (product as any).total_stock > 0 && (
+                                                        <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-black uppercase rounded ring-1 ring-inset ring-amber-600/20">Low</span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-slate-500 whitespace-nowrap">
                                                 {new Date((product as any).updated_at).toLocaleDateString(undefined, {

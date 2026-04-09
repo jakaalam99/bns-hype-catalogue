@@ -69,8 +69,8 @@ export const BulkImageMatchForm = ({ onClose, onSuccess }: BulkImageMatchFormPro
 
                 try {
                     const fileExt = file.name.split('.').pop();
-                    const timestamp = Date.now();
-                    const fileName = `${res.sku}/bulk_${timestamp}_${i}.${fileExt}`;
+                    const shortHash = Math.random().toString(36).substring(2, 6);
+                    const fileName = `${res.sku}/${res.sku}_${i}_${shortHash}.${fileExt}`;
 
                     // Upload image
                     const { error: uploadErr } = await supabase.storage
