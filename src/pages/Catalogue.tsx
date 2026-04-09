@@ -147,25 +147,26 @@ export const Catalogue = () => {
             }
 
             // Calculate range
-            const from = (pageNumber - 1) * ITEMS_PER_PAGE;
-            const to = from + ITEMS_PER_PAGE - 1;
+            // If it's the initial load of a deep page, fetch all items up to that page
+            const from = (pageNumber === 1 || products.length === 0) ? 0 : (pageNumber - 1) * ITEMS_PER_PAGE;
+            const to = pageNumber * ITEMS_PER_PAGE - 1;
 
             const { data, error } = await query.range(from, to);
 
             if (error) throw error;
 
-            if (pageNumber === 1) {
+            if (pageNumber === 1 || products.length === 0) {
                 setProducts(data as any);
             } else {
                 setProducts(prev => [...prev, ...(data as any)]);
             }
 
-            setHasMore(data.length === ITEMS_PER_PAGE);
+            setHasMore(data.length === (to - from + 1));
         } catch (error) {
             console.error('Error fetching public products:', error);
         } finally {
-            if (pageNumber === 1) setLoading(false);
-            else setLoadingMore(false);
+            setLoading(false);
+            setLoadingMore(false);
         }
     };
 

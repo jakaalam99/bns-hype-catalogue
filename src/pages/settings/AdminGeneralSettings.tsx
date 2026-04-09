@@ -146,16 +146,16 @@ export const AdminGeneralSettings = () => {
                                 </label>
                                 <p className="text-xs text-slate-500">Automatically hide products with zero total stock from the catalogue.</p>
                             </div>
-                            <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 cursor-pointer transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                <input
-                                    id="hide_out_of_stock_toggle"
-                                    type="checkbox"
-                                    checked={settings.hide_out_of_stock}
-                                    onChange={(e) => setSettings({ ...settings, hide_out_of_stock: e.target.checked })}
-                                    className="sr-only peer"
-                                />
-                                <div className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${settings.hide_out_of_stock ? 'translate-x-6' : 'translate-x-1'}`} />
-                                <div className={`absolute inset-0 rounded-full transition-colors ${settings.hide_out_of_stock ? 'bg-indigo-600' : 'bg-slate-200'}`} style={{ zIndex: -1 }} />
+                            <div className="flex items-center">
+                                <label className="relative inline-flex h-6 w-11 items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={settings.hide_out_of_stock}
+                                        onChange={(e) => setSettings({ ...settings, hide_out_of_stock: e.target.checked })}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
                             </div>
                         </div>
                     </div>
