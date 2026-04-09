@@ -57,13 +57,27 @@ export const Catalogue = () => {
 
     // Filter Options
     const [categories, setCategories] = useState<string[]>([]);
+    const [hideOutOfStock, setHideOutOfStock] = useState(false);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const { data } = await supabase.from('store_settings').select('hide_out_of_stock').eq('id', 1).single();
+                if (data) setHideOutOfStock(data.hide_out_of_stock);
+            } catch (err) {
+                console.error("Failed to load store settings", err);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     useEffect(() => {
         const fetchFilterOptions = async () => {
             try {
                 const { data, error } = await supabase.rpc('get_filtered_categories', {
                     search_text: searchQuery,
-                    brand_text: brandFilter
+                    brand_text: brandFilter,
+                    hide_out_of_stock_param: hideOutOfStock
                 });
 
                 if (error) throw error;
@@ -79,27 +93,31 @@ export const Catalogue = () => {
             fetchFilterOptions();
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, categoryFilter, brandFilter]);
+    }, [searchQuery, categoryFilter, brandFilter, hideOutOfStock]);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             fetchProducts(page);
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, sortOption, categoryFilter, brandFilter, page]);
+    }, [searchQuery, sortOption, categoryFilter, brandFilter, page, hideOutOfStock]);
 
     const fetchProducts = async (pageNumber: number) => {
         if (pageNumber === 1) setLoading(true);
         else setLoadingMore(true);
         try {
             let query = supabase
-                .from('products')
+                .from('admin_products_view')
                 .select(`
                     *,
                     images:product_images(*),
                     warehouse_stocks(quantity)
                 `)
                 .eq('is_active', true);
+
+            if (hideOutOfStock) {
+                query = query.gt('total_stock', 0);
+            }
 
             // Apply search
             if (searchQuery.trim() !== '') {
@@ -302,7 +320,7 @@ export const Catalogue = () => {
                                     {isRequestor && (
                                         <div className="pt-2">
                                             <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
-                                                Stock: {product.warehouse_stocks?.reduce((acc, curr) => acc + curr.quantity, 0) || 0}
+                                                Stock: {product.total_stock || 0}
                                             </span>
                                         </div>
                                     )}

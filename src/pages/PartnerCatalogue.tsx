@@ -53,13 +53,27 @@ export const PartnerCatalogue = () => {
     const ITEMS_PER_PAGE = 24;
 
     const [categories, setCategories] = useState<string[]>([]);
+    const [hideOutOfStock, setHideOutOfStock] = useState(false);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const { data } = await supabase.from('store_settings').select('hide_out_of_stock').eq('id', 1).single();
+                if (data) setHideOutOfStock(data.hide_out_of_stock);
+            } catch (err) {
+                console.error("Failed to load store settings", err);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     useEffect(() => {
         const fetchFilterOptions = async () => {
             try {
                 const { data, error } = await supabase.rpc('get_filtered_categories', {
                     search_text: searchQuery,
-                    brand_text: '' // No brand filter on partner yet
+                    brand_text: '', // No brand filter on partner yet
+                    hide_out_of_stock_param: hideOutOfStock
                 });
 
                 if (error) throw error;
@@ -75,27 +89,30 @@ export const PartnerCatalogue = () => {
             fetchFilterOptions();
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, categoryFilter]);
+    }, [searchQuery, categoryFilter, hideOutOfStock]);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             fetchProducts(page);
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, sortOption, categoryFilter, page]);
+    }, [searchQuery, sortOption, categoryFilter, page, hideOutOfStock]);
 
     const fetchProducts = async (pageNumber: number) => {
         if (pageNumber === 1) setLoading(true);
         else setLoadingMore(true);
         try {
             let query = supabase
-                .from('products')
+                .from('admin_products_view')
                 .select(`
                     *,
-                    images:product_images(*),
-                    warehouse_stocks(quantity)
+                    images:product_images(*)
                 `)
                 .eq('is_active', true);
+
+            if (hideOutOfStock) {
+                query = query.gt('total_stock', 0);
+            }
 
             if (searchQuery.trim() !== '') {
                 query = query.or(`name.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`);
@@ -416,7 +433,9 @@ export const PartnerCatalogue = () => {
                                     <div className="flex items-center gap-2 text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest mb-1">
                                         <span>{product.sku || 'N/A'}</span>
                                         <span>•</span>
-                                        <span className="text-indigo-600">Stock: {product.warehouse_stocks?.reduce((acc, curr) => acc + curr.quantity, 0) || 0}</span>
+                                        <span className={product.total_stock && product.total_stock <= 0 ? 'text-red-500' : 'text-indigo-600'}>
+                                            Stock: {product.total_stock || 0}
+                                        </span>
                                     </div>
                                     <h3 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2 mb-2 group-hover:text-indigo-600 transition-colors">
                                         {product.name}

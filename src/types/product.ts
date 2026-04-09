@@ -10,6 +10,7 @@ export interface Product {
     is_active: boolean;
     created_at: string;
     updated_at: string;
+    total_stock?: number;
 }
 
 export interface ProductImage {

@@ -34,6 +34,7 @@ export interface StoreSettings {
     }>;
     social_links: SocialLink[];
     marketplace_links: MarketplaceLink[];
+    hide_out_of_stock: boolean;
     favicon_url?: string | null;
     contact_url?: string | null;
     updated_at: string;
