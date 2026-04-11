@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase';
 import { X, Upload, Loader2 } from 'lucide-react';
 import type { ProductWithImages } from '../../types/product';
 import { formatIDR } from '../../lib/utils';
+import { useStoreSettings } from '../../features/catalogue/StoreSettingsContext';
+import { applyWatermark } from '../../lib/imageProcessor';
 
 interface ProductFormProps {
     onClose: () => void;
@@ -24,7 +26,8 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
         barcode: '',
         brand: '',
         category: '',
-        price: ''
+        price: '',
+        description: ''
     });
 
     // Primary Image selection states
@@ -42,7 +45,8 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                 barcode: productToEdit.barcode || '',
                 brand: productToEdit.brand || '',
                 category: productToEdit.category || '',
-                price: productToEdit.price.toString()
+                price: productToEdit.price.toString(),
+                description: productToEdit.description || ''
             });
 
             if (productToEdit.discount_price) {
@@ -100,6 +104,8 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
         }
     };
 
+    const { settings } = useStoreSettings();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -107,9 +113,8 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
 
         try {
             let product;
-
-            let finalDiscountPrice: number | null = null;
             const basePrice = parseFloat(formData.price) || 0;
+            let finalDiscountPrice: number | null = null;
 
             if (discountType === 'price' && discountValue) {
                 finalDiscountPrice = parseFloat(discountValue);
@@ -126,7 +131,6 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
             }
 
             if (productToEdit) {
-                // Update existing record
                 const { data, error: productError } = await supabase
                     .from('products')
                     .update({
@@ -135,8 +139,9 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                         barcode: formData.barcode || null,
                         brand: formData.brand || null,
                         category: formData.category || null,
-                        price: parseFloat(formData.price),
+                        price: basePrice,
                         discount_price: finalDiscountPrice,
+                        description: formData.description || null,
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', productToEdit.id)
@@ -145,9 +150,7 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
 
                 if (productError) throw productError;
                 product = data;
-
             } else {
-                // Insert new record
                 const { data, error: productError } = await supabase
                     .from('products')
                     .insert({
@@ -156,8 +159,9 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                         barcode: formData.barcode || null,
                         brand: formData.brand || null,
                         category: formData.category || null,
-                        price: parseFloat(formData.price),
-                        discount_price: finalDiscountPrice
+                        price: basePrice,
+                        discount_price: finalDiscountPrice,
+                        description: formData.description || null
                     })
                     .select()
                     .single();
@@ -166,50 +170,54 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                 product = data;
             }
 
-            // 2. Handle Image Ordering and Uploads
             if (product) {
-                // A. Reset existing images ordering if primary selection changed
-                // (or if we are Adding a new primary from the 'new files' list)
                 const shouldResetExisting = (primaryImageId !== null) || (newPrimaryIndex !== null);
                 
                 if (shouldResetExisting) {
-                    // Set all existing images to secondary (1)
                     await supabase.from('product_images').update({ display_order: 1 }).eq('product_id', product.id);
-                    
-                    // If one of these existing images is specifically chosen as primary, set it to 0
                     if (primaryImageId) {
                         await supabase.from('product_images').update({ display_order: 0 }).eq('id', primaryImageId);
                     }
                 }
 
-                // B. Upload new images and link them
                 if (images.length > 0) {
                     const imagePromises = images.map(async (file, index) => {
-                        const fileExt = file.name.split('.').pop();
+                        // Apply Watermark if enabled
+                        let uploadFile = file;
+                        if (settings?.watermark_enabled && settings?.watermark_image_url) {
+                            try {
+                                uploadFile = await applyWatermark(file, settings.watermark_image_url, {
+                                    scale: settings.watermark_size / 100,
+                                    opacity: settings.watermark_opacity / 100,
+                                    position: settings.watermark_position as any,
+                                    padding: settings.watermark_padding,
+                                    offsetX: settings.watermark_offset_x,
+                                    offsetY: settings.watermark_offset_y
+                                });
+                            } catch (error) {
+                                console.error('Failed to apply watermark to', file.name, error);
+                                // Continue with original file if watermarking fails
+                                uploadFile = file;
+                            }
+                        }
+
+                        const fileExt = uploadFile.name.split('.').pop();
                         const shortHash = Math.random().toString(36).substring(2, 6);
                         const fileName = `${product.sku}/${product.sku}_${index}_${shortHash}.${fileExt}`;
                         
-                        // Decide display order
-                        // Logic: 
-                        // 1. If this index is our newPrimaryIndex, it is 0.
-                        // 2. If no primary was set yet (newly created product) and it is the first image, it is 0.
-                        // 3. Otherwise, it is a secondary image (set to a higher order or 1).
-                        let displayOrder = index + 1; // Default secondary
+                        let displayOrder = index + 1;
                         if (index === newPrimaryIndex) {
                             displayOrder = 0;
                         } else if (newPrimaryIndex === null && primaryImageId === null && index === 0 && existingImages.length === 0) {
-                            // First ever image for a brand new product
                             displayOrder = 0;
                         }
 
-                        // Upload to storage
                         const { error: uploadError } = await supabase.storage
                             .from('product-images')
-                            .upload(fileName, file);
+                            .upload(fileName, uploadFile);
 
                         if (uploadError) throw uploadError;
 
-                        // Insert record in DB
                         return supabase.from('product_images').insert({
                             product_id: product.id,
                             image_url: fileName,
@@ -309,6 +317,18 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                     className="block w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                     placeholder="e.g. Sneakers, Apparel"
+                                />
+                            </div>
+
+                            <div className="col-span-1 sm:col-span-2">
+                                <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="description">Description</label>
+                                <textarea
+                                    id="description"
+                                    rows={3}
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    className="block w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
+                                    placeholder="Tell more about this product..."
                                 />
                             </div>
 

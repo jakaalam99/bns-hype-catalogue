@@ -8,6 +8,7 @@ export interface Product {
     price: number;
     discount_price: number | null;
     is_active: boolean;
+    description: string | null;
     created_at: string;
     updated_at: string;
     total_stock?: number;

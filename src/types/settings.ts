@@ -35,6 +35,14 @@ export interface StoreSettings {
     social_links: SocialLink[];
     marketplace_links: MarketplaceLink[];
     hide_out_of_stock: boolean;
+    watermark_enabled: boolean;
+    watermark_image_url?: string | null;
+    watermark_size: number;
+    watermark_position: string;
+    watermark_opacity: number;
+    watermark_padding: number;
+    watermark_offset_x: number;
+    watermark_offset_y: number;
     favicon_url?: string | null;
     contact_url?: string | null;
     updated_at: string;

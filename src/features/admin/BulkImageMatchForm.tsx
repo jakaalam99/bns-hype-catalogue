@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { X, Upload, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { useStoreSettings } from '../../features/catalogue/StoreSettingsContext';
+import { applyWatermark } from '../../lib/imageProcessor';
 
 interface BulkImageMatchFormProps {
     onClose: () => void;
@@ -39,12 +41,13 @@ export const BulkImageMatchForm = ({ onClose, onSuccess }: BulkImageMatchFormPro
         setResults(prev => prev.filter((_, i) => i !== index));
     };
 
+    const { settings } = useStoreSettings();
+
     const processMatches = async () => {
         if (files.length === 0) return;
         setIsProcessing(true);
 
         try {
-            // 1. Fetch all product SKUs to verify matches
             const { data: products, error: pErr } = await supabase
                 .from('products')
                 .select('id, sku');
@@ -52,7 +55,6 @@ export const BulkImageMatchForm = ({ onClose, onSuccess }: BulkImageMatchFormPro
             if (pErr) throw pErr;
 
             const skuMap = new Map((products || []).map(p => [p.sku.toUpperCase(), p.id]));
-
             const updatedResults = [...results];
 
             for (let i = 0; i < files.length; i++) {
@@ -68,14 +70,32 @@ export const BulkImageMatchForm = ({ onClose, onSuccess }: BulkImageMatchFormPro
                 }
 
                 try {
-                    const fileExt = file.name.split('.').pop();
+                    // Apply Watermark if enabled
+                    let uploadFile = file;
+                    if (settings?.watermark_enabled && settings?.watermark_image_url) {
+                        try {
+                            uploadFile = await applyWatermark(file, settings.watermark_image_url, {
+                                scale: settings.watermark_size / 100,
+                                opacity: settings.watermark_opacity / 100,
+                                position: settings.watermark_position as any,
+                                padding: settings.watermark_padding,
+                                offsetX: settings.watermark_offset_x,
+                                offsetY: settings.watermark_offset_y
+                            });
+                        } catch (error) {
+                            console.error('Failed to apply watermark in bulk to', file.name, error);
+                            // Fallback to original file
+                            uploadFile = file;
+                        }
+                    }
+
+                    const fileExt = uploadFile.name.split('.').pop();
                     const shortHash = Math.random().toString(36).substring(2, 6);
                     const fileName = `${res.sku}/${res.sku}_${i}_${shortHash}.${fileExt}`;
 
-                    // Upload image
                     const { error: uploadErr } = await supabase.storage
                         .from('product-images')
-                        .upload(fileName, file);
+                        .upload(fileName, uploadFile);
 
                     if (uploadErr) throw uploadErr;
 

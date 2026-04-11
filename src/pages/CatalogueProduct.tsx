@@ -235,7 +235,11 @@ export const CatalogueProduct = () => {
                     )}
 
                     <div className="prose prose-slate text-slate-600 mb-8 border-t border-slate-100 pt-8">
-                        <p>This is a premium piece from the BNS Hype catalogue. All items are meticulously verified and handled with the utmost care for our discerning customers.</p>
+                        {product.description ? (
+                            <div className="whitespace-pre-wrap">{product.description}</div>
+                        ) : (
+                            <p>This is a premium piece from the BNS Hype catalogue. All items are meticulously verified and handled with the utmost care for our discerning customers.</p>
+                        )}
 
                         {product.barcode && (
                             <div className="mt-6 pt-6 border-t border-slate-50">

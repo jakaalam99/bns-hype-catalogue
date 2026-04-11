@@ -14,6 +14,7 @@ export const AdminProducts = () => {
     const [products, setProducts] = useState<ProductWithImages[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [isBulkImageOpen, setIsBulkImageOpen] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isCSVOpen, setIsCSVOpen] = useState(false);
@@ -32,15 +33,22 @@ export const AdminProducts = () => {
     const [counts, setCounts] = useState({ all: 0, active: 0, hidden: 0, in_stock: 0, out_of_stock: 0 });
     const PAGE_SIZE = 100;
 
-
     // Sorting
     const [sortColumn, setSortColumn] = useState<string>('updated_at');
     const [sortAscending, setSortAscending] = useState<boolean>(false);
+    
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         fetchProducts(1, true);
         fetchCounts();
-    }, [sortColumn, sortAscending, stockFilter]);
+    }, [sortColumn, sortAscending, stockFilter, debouncedSearch, statusTab, imageFilter]);
 
     const fetchCounts = async () => {
         try {
@@ -79,24 +87,45 @@ export const AdminProducts = () => {
                 .select(`
                     *,
                     images:product_images(*)
-                `)
+                `, { count: 'exact' })
                 .order(sortColumn, { ascending: sortAscending });
 
-            // Apply stock filter
+            // Apply search filter (Server-side)
+            if (debouncedSearch.trim()) {
+                query = query.or(`name.ilike.%${debouncedSearch}%,sku.ilike.%${debouncedSearch}%`);
+            }
+
+            // Apply stock filter (Server-side)
             if (stockFilter === 'in_stock') {
                 query = query.gt('total_stock', 0);
             } else if (stockFilter === 'out_of_stock') {
                 query = query.lte('total_stock', 0);
             }
 
-            const { data, error } = await query.range(from, to);
+            // Apply status filter (Server-side)
+            if (statusTab === 'active') {
+                query = query.eq('is_active', true);
+            } else if (statusTab === 'hidden') {
+                query = query.eq('is_active', false);
+            }
+
+            // Apply image filter (Server-side using optimized view column)
+            if (imageFilter === 'with_images') {
+                query = query.eq('has_images', true);
+            } else if (imageFilter === 'no_images') {
+                query = query.eq('has_images', false);
+            }
+
+            const { data, error, count } = await query.range(from, to);
 
             if (error) throw error;
 
             if (isInitial) {
                 setProducts(data as any);
+                setFilteredCount(count || 0);
             } else {
                 setProducts(prev => [...prev, ...(data as any)]);
+                setFilteredCount(count || 0);
             }
 
             setHasMore(data.length === PAGE_SIZE);
@@ -211,36 +240,11 @@ export const AdminProducts = () => {
         );
     };
 
-    // Deriving filtered products locally for search and image status
-    // We use useMemo for stable filtering and performance
-    const filteredProducts = (products || []).filter(product => {
-        // Search filter
-        const matchesSearch = searchQuery.trim() === '' ||
-            (product.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (product.sku || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const [filteredCount, setFilteredCount] = useState(0);
 
-        if (!matchesSearch) return false;
-
-        // Image filter: Ultra-robust check with multiple fallbacks
-        const hasImages =
-            (product as any).has_images === true ||
-            (product.images && Array.isArray(product.images) && product.images.length > 0) ||
-            ((product as any).product_images && Array.isArray((product as any).product_images) && (product as any).product_images.length > 0);
-
-        if (imageFilter === 'with_images') return hasImages;
-        if (imageFilter === 'no_images') return !hasImages;
-
-        // Status filter
-        if (statusTab === 'active') return product.is_active === true;
-        if (statusTab === 'hidden') return product.is_active === false;
-
-        return true;
-    });
-
+    // Table uses the products from state
     // Debugging: Log filter counts
-    console.log(`AdminProducts: ${products.length} total, ${filteredProducts.filter(p => {
-        return (p as any).has_images === true || (p.images && p.images.length > 0) || ((p as any).product_images && (p as any).product_images.length > 0);
-    }).length} identified with images.`);
+    console.log(`AdminProducts: ${products.length} current, ${filteredCount} matches in database.`);
 
     return (
         <div className="space-y-6 animate-fade-in relative z-10">
@@ -421,7 +425,7 @@ export const AdminProducts = () => {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : filteredProducts.length === 0 ? (
+                            ) : products.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
                                         <div className="flex flex-col items-center justify-center">
@@ -434,7 +438,7 @@ export const AdminProducts = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredProducts.map((product) => {
+                                products.map((product) => {
 
 
                                     const primaryImage = product.images?.find((img: any) => img.display_order === 0) || product.images?.[0];
@@ -544,7 +548,11 @@ export const AdminProducts = () => {
                 {/* Pagination Controls */}
                 <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-xs text-slate-500 font-medium tracking-tight">
-                        Showing <span className="text-slate-900 font-bold">{products.length}</span> of <span className="text-slate-900 font-bold">{counts.all}</span> products
+                        {debouncedSearch.trim() || imageFilter !== 'all' ? (
+                             <>Showing <span className="text-slate-900 font-bold">{products.length}</span> of <span className="text-slate-900 font-bold">{filteredCount}</span> matches found</>
+                        ) : (
+                             <>Showing <span className="text-slate-900 font-bold">{products.length}</span> of <span className="text-slate-900 font-bold">{counts.all}</span> products</>
+                        )}
                     </p>
                     {hasMore && (
                         <button 

@@ -40,6 +40,14 @@ export const StoreSettingsProvider = ({ children }: { children: ReactNode }) => 
                         social_links: [],
                         marketplace_links: [],
                         hide_out_of_stock: false,
+                        watermark_enabled: false,
+                        watermark_image_url: null,
+                        watermark_size: 25,
+                        watermark_position: 'top-center',
+                        watermark_opacity: 100,
+                        watermark_padding: 20,
+                        watermark_offset_x: 0,
+                        watermark_offset_y: 0,
                         updated_at: new Date().toISOString()
                     });
                     return;
