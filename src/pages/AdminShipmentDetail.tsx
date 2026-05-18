@@ -62,6 +62,59 @@ export const AdminShipmentDetail = () => {
         return () => clearTimeout(handler);
     }, [searchInput]);
 
+    const logAction = useCallback(async (action: string, details: any) => {
+        if (!id) return;
+        await supabase.from('shipment_logs').insert([{
+            shipment_id: id,
+            user_id: user?.id,
+            user_name: user?.user_metadata?.full_name || user?.email,
+            user_role: role,
+            action,
+            details
+        }]);
+    }, [id, user, role]);
+
+    const brandOptions = ['All', ...new Set(items.filter(i => {
+        const matchesSearch = i.name?.toLowerCase().includes(search.toLowerCase()) || i.sku?.toLowerCase().includes(search.toLowerCase());
+        const matchesWeek = weekFilter === 'All' || i.launch_week === weekFilter;
+        const matchesType = typeFilter === 'All' || (typeFilter === 'New Item' && !i.is_repeat_order) || (typeFilter === 'Repeat Order' && i.is_repeat_order);
+        return matchesSearch && matchesWeek && matchesType;
+    }).map(i => i.brand || 'Unknown').filter(Boolean))].sort();
+
+    const ipOptions = ['All', ...new Set(items.filter(i => {
+        const matchesSearch = i.name?.toLowerCase().includes(search.toLowerCase()) || i.sku?.toLowerCase().includes(search.toLowerCase());
+        const matchesBrand = brandFilter === 'All' || i.brand === brandFilter;
+        const matchesWeek = weekFilter === 'All' || i.launch_week === weekFilter;
+        const matchesType = typeFilter === 'All' || (typeFilter === 'New Item' && !i.is_repeat_order) || (typeFilter === 'Repeat Order' && i.is_repeat_order);
+        return matchesSearch && matchesBrand && matchesWeek && matchesType;
+    }).map(i => i.ip_name).filter(Boolean))].sort();
+
+    const weekOptions = useMemo(() => {
+        return ['All', ...new Set(items.map(i => i.launch_week).filter(Boolean))].sort();
+    }, [items]);
+
+    const filteredStores = useMemo(() => {
+        if (selectedStoreGroupId === 'All') return stores;
+        if (selectedStoreGroupId === 'None') return stores.filter(s => !s.group_id);
+        return stores.filter(s => s.group_id === selectedStoreGroupId);
+    }, [stores, selectedStoreGroupId]);
+
+    const filteredItems = items.filter(item => {
+        const matchesSearch = item.name?.toLowerCase().includes(search.toLowerCase()) || 
+                             item.sku?.toLowerCase().includes(search.toLowerCase());
+        const matchesBrand = brandFilter === 'All' || item.brand === brandFilter;
+        const matchesIp = ipFilter === 'All' || item.ip_name === ipFilter;
+        const matchesWeek = weekFilter === 'All' || item.launch_week === weekFilter;
+        const matchesType = typeFilter === 'All' || 
+                           (typeFilter === 'New Item' && !item.is_repeat_order) ||
+                           (typeFilter === 'Repeat Order' && item.is_repeat_order);
+        const matchesLaunch = launchFilter === 'All' || 
+                             (launchFilter === 'Fully Launched' && item.is_fully_launched) ||
+                             (launchFilter === 'In Progress' && !item.is_fully_launched);
+        
+        return matchesSearch && matchesBrand && matchesIp && matchesWeek && matchesType && matchesLaunch;
+    });
+
     const fetchData = useCallback(async () => {
         if (!id) return;
         setLoading(true);
@@ -366,18 +419,6 @@ export const AdminShipmentDetail = () => {
         }
     }, [allocations, originalAllocations, items, stores, logAction, fetchData]);
 
-    const logAction = useCallback(async (action: string, details: any) => {
-        if (!id) return;
-        await supabase.from('shipment_logs').insert([{
-            shipment_id: id,
-            user_id: user?.id,
-            user_name: user?.user_metadata?.full_name || user?.email,
-            user_role: role,
-            action,
-            details
-        }]);
-    }, [id, user, role]);
-
     const handleDeleteItem = useCallback(async (itemId: string) => {
         if (!confirm('Are you sure you want to remove this product from the shipment?')) return;
         try {
@@ -481,47 +522,6 @@ export const AdminShipmentDetail = () => {
             alert('Failed to update order: ' + err.message);
         }
     }, [isMD, filteredItems, items, fetchData]);
-
-    const brandOptions = ['All', ...new Set(items.filter(i => {
-        const matchesSearch = i.name?.toLowerCase().includes(search.toLowerCase()) || i.sku?.toLowerCase().includes(search.toLowerCase());
-        const matchesWeek = weekFilter === 'All' || i.launch_week === weekFilter;
-        const matchesType = typeFilter === 'All' || (typeFilter === 'New Item' && !i.is_repeat_order) || (typeFilter === 'Repeat Order' && i.is_repeat_order);
-        return matchesSearch && matchesWeek && matchesType;
-    }).map(i => i.brand || 'Unknown').filter(Boolean))].sort();
-
-    const ipOptions = ['All', ...new Set(items.filter(i => {
-        const matchesSearch = i.name?.toLowerCase().includes(search.toLowerCase()) || i.sku?.toLowerCase().includes(search.toLowerCase());
-        const matchesBrand = brandFilter === 'All' || i.brand === brandFilter;
-        const matchesWeek = weekFilter === 'All' || i.launch_week === weekFilter;
-        const matchesType = typeFilter === 'All' || (typeFilter === 'New Item' && !i.is_repeat_order) || (typeFilter === 'Repeat Order' && i.is_repeat_order);
-        return matchesSearch && matchesBrand && matchesWeek && matchesType;
-    }).map(i => i.ip_name).filter(Boolean))].sort();
-
-    const weekOptions = useMemo(() => {
-        return ['All', ...new Set(items.map(i => i.launch_week).filter(Boolean))].sort();
-    }, [items]);
-
-    const filteredStores = useMemo(() => {
-        if (selectedStoreGroupId === 'All') return stores;
-        if (selectedStoreGroupId === 'None') return stores.filter(s => !s.group_id);
-        return stores.filter(s => s.group_id === selectedStoreGroupId);
-    }, [stores, selectedStoreGroupId]);
-
-    const filteredItems = items.filter(item => {
-        const matchesSearch = item.name?.toLowerCase().includes(search.toLowerCase()) || 
-                             item.sku?.toLowerCase().includes(search.toLowerCase());
-        const matchesBrand = brandFilter === 'All' || item.brand === brandFilter;
-        const matchesIp = ipFilter === 'All' || item.ip_name === ipFilter;
-        const matchesWeek = weekFilter === 'All' || item.launch_week === weekFilter;
-        const matchesType = typeFilter === 'All' || 
-                           (typeFilter === 'New Item' && !item.is_repeat_order) ||
-                           (typeFilter === 'Repeat Order' && item.is_repeat_order);
-        const matchesLaunch = launchFilter === 'All' || 
-                             (launchFilter === 'Fully Launched' && item.is_fully_launched) ||
-                             (launchFilter === 'In Progress' && !item.is_fully_launched);
-        
-        return matchesSearch && matchesBrand && matchesIp && matchesWeek && matchesType && matchesLaunch;
-    });
 
     const formatLogDetails = (log: ShipmentLog) => {
         if (!log.details) return null;

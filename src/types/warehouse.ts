@@ -8,7 +8,7 @@ export interface Warehouse {
     id: string;
     name: string;
     is_visible: boolean;
-    group_id?: string;
+    group_id?: string | null;
     created_at: string;
     group?: WarehouseGroup;
 }

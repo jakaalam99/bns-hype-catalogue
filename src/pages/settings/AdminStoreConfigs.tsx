@@ -7,6 +7,7 @@ interface StoreUser {
     email: string;
     role: string;
     store_name?: string;
+    store_id?: string | null;
 }
 
 interface Destination {
