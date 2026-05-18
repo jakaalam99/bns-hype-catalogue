@@ -18,6 +18,8 @@ interface CSVRow {
     barcode?: string;
     brand?: string;
     category?: string;
+    ip?: string;
+    series_category?: string;
 }
 
 export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
@@ -25,7 +27,7 @@ export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
     const [results, setResults] = useState<{
         success: number;
         failed: number;
-        errors: { row: number, message: string }[];
+        errors: { row: number, sku?: string, message: string }[];
     } | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,7 +75,11 @@ export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
                 if (isRowEmpty) return null;
 
                 if (!row.sku || !row.name || row.price === undefined || row.price === null || row.price === '') {
-                    errors.push({ row: rowIndex, message: `Missing required fields (sku, name, or price)` });
+                    errors.push({ 
+                        row: rowIndex, 
+                        sku: row.sku?.toString() || 'N/A', 
+                        message: `Missing required fields (sku, name, or price)` 
+                    });
                     failedCount++;
                     return null;
                 }
@@ -91,7 +97,11 @@ export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
                 if (hasDiscountAmt) methodsCount++;
 
                 if (methodsCount > 1) {
-                    errors.push({ row: rowIndex, message: `Only ONE discount method can be filled (discount_price, discount_percentage, OR discount_amount). Found multiple.` });
+                    errors.push({ 
+                        row: rowIndex, 
+                        sku: row.sku.toString(), 
+                        message: `Only ONE discount method can be filled (discount_price, discount_percentage, OR discount_amount). Found multiple.` 
+                    });
                     failedCount++;
                     return null;
                 }
@@ -117,7 +127,9 @@ export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
                     discount_price: finalDiscountPrice,
                     barcode: row.barcode ? row.barcode.toString().trim() : null,
                     brand: row.brand ? row.brand.toString().trim() : null,
-                    category: row.category ? row.category.toString().trim() : null
+                    category: row.category ? row.category.toString().trim() : null,
+                    ip: row.ip ? row.ip.toString().trim() : null,
+                    series_category: row.series_category ? row.series_category.toString().trim() : null
                 };
             }).filter(Boolean) as any[];
 
@@ -129,7 +141,11 @@ export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
                         uniqueRecordsMap.set(record.sku, record);
                     } else {
                         // Missing required fields after parsing (like price being 0 or NaN)
-                        errors.push({ row: i + 2, message: `SKU ${record.sku || 'N/A'} is missing a valid Name or Price.` });
+                        errors.push({ 
+                            row: i + 2, 
+                            sku: record.sku || 'N/A', 
+                            message: `SKU ${record.sku || 'N/A'} is missing a valid Name or Price.` 
+                        });
                         failedCount++;
                     }
                 }
@@ -142,12 +158,33 @@ export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
                     .upsert(deduplicatedRecords, { onConflict: 'sku' });
 
                 if (error) {
-                    // If batch fails, we record the error.
-                    errors.push({ row: i + 2, message: `Batch upsert failed: ${error.message}` });
+                    // If batch fails, we record the error for each SKU in the batch to be explicit
+                    validRecords.forEach((rec, idx) => {
+                         errors.push({ 
+                            row: i + idx + 2, 
+                            sku: rec.sku, 
+                            message: `Database error: ${error.message}` 
+                        });
+                    });
                     failedCount += validRecords.length;
                 } else {
                     successCount += deduplicatedRecords.length;
-                    failedCount += (validRecords.length - deduplicatedRecords.length); // Track duplicates as failed/skipped
+                    
+                    // Track duplicates as failed/skipped
+                    if (validRecords.length > deduplicatedRecords.length) {
+                        const seenSkus = new Set();
+                        validRecords.forEach((rec, idx) => {
+                            if (seenSkus.has(rec.sku)) {
+                                errors.push({
+                                    row: i + idx + 2,
+                                    sku: rec.sku,
+                                    message: "Duplicate SKU found in file. This row was skipped in favor of the last occurrence."
+                                });
+                            }
+                            seenSkus.add(rec.sku);
+                        });
+                        failedCount += (validRecords.length - deduplicatedRecords.length);
+                    }
                 }
             }
         }
@@ -170,7 +207,9 @@ export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
             price: 29.99,
             discount_price: 24.99,
             discount_percentage: "",
-            discount_amount: ""
+            discount_amount: "",
+            ip: "IP-101",
+            series_category: "FW24"
         }, {
             sku: "JEANS-002",
             barcode: "",
@@ -180,13 +219,30 @@ export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
             price: 59.99,
             discount_price: "",
             discount_percentage: 10,
-            discount_amount: ""
+            discount_amount: "",
+            ip: "",
+            series_category: ""
         }];
 
         const worksheet = XLSX.utils.json_to_sheet(templateData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
         XLSX.writeFile(workbook, 'bns-hype-catalogue-template.xlsx');
+    };
+
+    const downloadErrorReport = () => {
+        if (!results || results.errors.length === 0) return;
+
+        const errorData = results.errors.map(err => ({
+            'Row Number': err.row,
+            'SKU': err.sku || 'N/A',
+            'Error Message': err.message
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(errorData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Errors");
+        XLSX.writeFile(workbook, `import-errors-${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
     return (
@@ -210,7 +266,7 @@ export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
                                         <li>Your file must contain these headers exactly: <strong>sku, name, price</strong></li>
                                         <li>Optional discount headers: <strong>discount_price, discount_percentage, discount_amount</strong></li>
                                         <li><strong className="text-red-600">IMPORTANT:</strong> You can only fill out ONE of the discount columns. Leaving them blank means no discount.</li>
-                                        <li>Optional info headers: <strong>barcode, brand, category</strong></li>
+                                        <li>Optional info headers: <strong>barcode, brand, category, ip, series_category</strong></li>
                                         <li>If a SKU already exists, that product will be <strong>updated</strong>.</li>
                                         <li>If a SKU does not exist, a new product will be created.</li>
                                     </ul>
@@ -276,19 +332,31 @@ export const ImportCSVForm = ({ onClose, onSuccess }: ImportCSVFormProps) => {
 
                             {results.errors.length > 0 && (
                                 <div className="mt-6">
-                                    <h4 className="font-semibold text-slate-900 mb-3 text-sm flex items-center gap-2">
-                                        <AlertCircle size={16} className="text-red-500" />
-                                        Error Report ({results.errors.length})
-                                    </h4>
-                                    <div className="bg-red-50 border border-red-100 rounded-xl p-4 max-h-48 overflow-y-auto">
-                                        <ul className="space-y-2">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-2">
+                                            <AlertCircle size={16} className="text-red-500" />
+                                            Error Report ({results.errors.length})
+                                        </h4>
+                                        <button
+                                            onClick={downloadErrorReport}
+                                            className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 transition-colors py-1 px-2 rounded-md hover:bg-indigo-50 border border-transparent hover:border-indigo-100 shadow-sm"
+                                        >
+                                            <FileDown size={14} />
+                                            Download Error List
+                                        </button>
+                                    </div>
+                                    <div className="bg-red-50 border border-red-100 rounded-xl p-4 max-h-64 overflow-y-auto shadow-inner">
+                                        <div className="space-y-3">
                                             {results.errors.map((err, i) => (
-                                                <li key={i} className="text-sm text-red-800 flex items-start gap-2">
-                                                    <span className="font-medium min-w-[50px]">— Row {err.row}:</span>
-                                                    <span>{err.message}</span>
-                                                </li>
+                                                <div key={i} className="text-sm text-red-800 flex flex-col gap-0.5 border-b border-red-200/50 pb-2 last:border-0 last:pb-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold px-1.5 py-0.5 bg-red-100 rounded text-[10px] uppercase">Row {err.row}</span>
+                                                        <span className="font-mono font-bold text-red-900">{err.sku || 'N/A'}</span>
+                                                    </div>
+                                                    <span className="text-red-700/90 leading-tight pl-0.5">{err.message}</span>
+                                                </div>
                                             ))}
-                                        </ul>
+                                        </div>
                                     </div>
                                 </div>
                             )}

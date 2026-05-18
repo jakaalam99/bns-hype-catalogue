@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { ShoppingBag, Menu, X, Instagram, Info, Home, Tag, Search, ShoppingCart, LogOut } from 'lucide-react'
+import { ShoppingBag, Menu, X, Instagram, Info, Home, Tag, Search, ShoppingCart, LogOut, Sparkles } from 'lucide-react'
 import { useStoreSettings } from '../../features/catalogue/StoreSettingsContext'
 import { useBasket } from '../../features/catalogue/BasketContext'
 import { useAuthStore } from '../../features/auth/useAuthStore'
@@ -99,6 +99,14 @@ export const CatalogueLayout = () => {
                         {isPartner ? 'Partner Workspace' : 'Catalogue'}
                     </Link>
                     <Link
+                        to="/new-drops"
+                        onClick={() => setIsSidebarOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${location.pathname === '/new-drops' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                    >
+                        <Sparkles size={18} />
+                        New Drops
+                    </Link>
+                    <Link
                         to="/about"
                         onClick={() => setIsSidebarOpen(false)}
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${location.pathname === '/about' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
@@ -139,6 +147,16 @@ export const CatalogueLayout = () => {
                         >
                             <FileText size={18} />
                             Request History
+                        </Link>
+                    )}
+                    {userRole === 'STORE' && (
+                        <Link
+                            to="/store/orders"
+                            onClick={() => setIsSidebarOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${location.pathname === '/store/orders' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                        >
+                            <ShoppingBag size={18} />
+                            My Orders
                         </Link>
                     )}
                     {activePrograms.length > 0 && (

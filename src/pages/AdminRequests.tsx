@@ -117,7 +117,7 @@ export const AdminRequests = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                        {isFinance ? 'Shipment Processing' : 'Request Review & Allocation'}
+                        {isFinance ? 'Shipment Processing' : 'Inventory Requests (Standard)'}
                     </h1>
                     <p className="text-sm text-slate-500">
                         Manage and process incoming inventory requests.

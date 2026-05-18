@@ -6,8 +6,9 @@ const supabase = createClient(
 );
 
 async function checkSchema() {
-    const { data, error } = await supabase.from('warehouses').select('*').limit(5);
-    console.log("Warehouses:", data);
+    const { data, error } = await supabase.from('destination_locations').select('*').limit(10);
+    console.log("Destinations:", data);
+    if (error) console.log("Destinations error:", error.message);
 
     const { data: p, error: pe } = await supabase.from('products').select('id, sku').limit(2);
     console.log("Products:", p);

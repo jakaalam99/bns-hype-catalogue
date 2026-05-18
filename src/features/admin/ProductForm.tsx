@@ -27,6 +27,8 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
         brand: '',
         category: '',
         price: '',
+        ip: '',
+        series_category: '',
         description: ''
     });
 
@@ -46,6 +48,8 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                 brand: productToEdit.brand || '',
                 category: productToEdit.category || '',
                 price: productToEdit.price.toString(),
+                ip: productToEdit.ip || '',
+                series_category: productToEdit.series_category || '',
                 description: productToEdit.description || ''
             });
 
@@ -141,6 +145,8 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                         category: formData.category || null,
                         price: basePrice,
                         discount_price: finalDiscountPrice,
+                        ip: formData.ip || null,
+                        series_category: formData.series_category || null,
                         description: formData.description || null,
                         updated_at: new Date().toISOString()
                     })
@@ -161,6 +167,8 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                         category: formData.category || null,
                         price: basePrice,
                         discount_price: finalDiscountPrice,
+                        ip: formData.ip || null,
+                        series_category: formData.series_category || null,
                         description: formData.description || null
                     })
                     .select()
@@ -317,6 +325,28 @@ export const ProductForm = ({ onClose, onSuccess, productToEdit }: ProductFormPr
                                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                     className="block w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                     placeholder="e.g. Sneakers, Apparel"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="ip">IP (Optional)</label>
+                                <input
+                                    id="ip"
+                                    value={formData.ip}
+                                    onChange={(e) => setFormData({ ...formData, ip: e.target.value })}
+                                    className="block w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                    placeholder="e.g. IP-123 or Price Code"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="series_category">Series Category (Optional)</label>
+                                <input
+                                    id="series_category"
+                                    value={formData.series_category}
+                                    onChange={(e) => setFormData({ ...formData, series_category: e.target.value })}
+                                    className="block w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                    placeholder="e.g. FW24, Season 1"
                                 />
                             </div>
 

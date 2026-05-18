@@ -18,6 +18,14 @@ import { AdminOfflineStoreSettings } from './pages/settings/AdminOfflineStoreSet
 import { AdminWarehouseSettings } from './pages/settings/AdminWarehouseSettings'
 import { AdminDestinationSettings } from './pages/settings/AdminDestinationSettings'
 import { AdminInventory } from './pages/AdminInventory'
+import { AdminShipments } from './pages/AdminShipments'
+import { AdminShipmentDetail } from './pages/AdminShipmentDetail'
+import { NewDrops } from './pages/NewDrops'
+import { NewDropDetail } from './pages/NewDropDetail'
+import { AdminStoreConfigs } from './pages/settings/AdminStoreConfigs'
+import { AdminOrderManagement } from './pages/AdminOrderManagement'
+import { AdminOrderDetail } from './pages/AdminOrderDetail'
+import { StoreOrderDetail } from './pages/store/StoreOrderDetail'
 import { About } from './pages/About'
 import { Basket } from './pages/Basket'
 import { BrandGuidance } from './pages/BrandGuidance'
@@ -26,7 +34,8 @@ import { StoreSettingsProvider } from './features/catalogue/StoreSettingsContext
 import { BasketProvider } from './features/catalogue/BasketContext'
 import { PageTracker } from './features/catalogue/PageTracker'
 import { FaviconManager } from './components/FaviconManager'
-
+import { StoreCatalogue } from './pages/store/StoreCatalogue'
+import { StoreOrders } from './pages/store/StoreOrders'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { AdminRequests } from './pages/AdminRequests'
 import { AdminRequestDetail } from './pages/AdminRequestDetail'
@@ -62,9 +71,34 @@ function App() {
               } />
               <Route path="product/:id" element={<CatalogueProduct />} />
               <Route path="program/:id" element={<ProgramCatalogue />} />
-              <Route path="partner/workspace" element={
+               <Route path="partner/workspace" element={
                 <ProtectedRoute allowRoles={['partner']}>
                   <PartnerCatalogue />
+                </ProtectedRoute>
+              } />
+              <Route path="store/catalogue" element={
+                <ProtectedRoute allowRoles={['STORE']}>
+                  <StoreCatalogue />
+                </ProtectedRoute>
+              } />
+              <Route path="store/orders" element={
+                <ProtectedRoute allowRoles={['STORE']}>
+                  <StoreOrders />
+                </ProtectedRoute>
+              } />
+              <Route path="store/orders/:id" element={
+                <ProtectedRoute allowRoles={['STORE']}>
+                  <StoreOrderDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="new-drops" element={
+                <ProtectedRoute allowRoles={['ADMIN', 'MD', 'SUPER_ADMIN', 'MERCHANDISER', 'STORE']}>
+                  <NewDrops />
+                </ProtectedRoute>
+              } />
+              <Route path="new-drops/:id" element={
+                <ProtectedRoute allowRoles={['ADMIN', 'MD', 'SUPER_ADMIN', 'MERCHANDISER', 'STORE']}>
+                  <NewDropDetail />
                 </ProtectedRoute>
               } />
             </Route>
@@ -92,12 +126,27 @@ function App() {
                 <Route path="programs" element={<AdminPrograms />} />
                 <Route path="brand-guidance" element={<AdminBrandGuidance />} />
                 <Route path="inventory" element={<AdminInventory />} />
+                <Route path="shipments" element={<AdminShipments />} />
+                <Route path="shipments/:id" element={<AdminShipmentDetail />} />
+                <Route path="new-drops" element={
+                  <ProtectedRoute allowRoles={['ADMIN', 'MD', 'SUPER_ADMIN', 'MERCHANDISER', 'STORE']}>
+                    <NewDrops />
+                  </ProtectedRoute>
+                } />
+                <Route path="new-drops/:id" element={
+                  <ProtectedRoute allowRoles={['ADMIN', 'MD', 'SUPER_ADMIN', 'MERCHANDISER', 'STORE']}>
+                    <NewDropDetail />
+                  </ProtectedRoute>
+                } />
                 <Route path="settings/general" element={<AdminGeneralSettings />} />
                 <Route path="settings/socials" element={<AdminSocialSettings />} />
                 <Route path="settings/marketplaces" element={<AdminMarketplaceSettings />} />
                 <Route path="settings/offline-stores" element={<AdminOfflineStoreSettings />} />
                 <Route path="settings/warehouses" element={<AdminWarehouseSettings />} />
                 <Route path="settings/destinations" element={<AdminDestinationSettings />} />
+                <Route path="settings/store-configs" element={<AdminStoreConfigs />} />
+                <Route path="orders" element={<AdminOrderManagement />} />
+                <Route path="orders/:id" element={<AdminOrderDetail />} />
               </Route>
             </Route>
           </Routes>
@@ -123,6 +172,9 @@ function CatalogueIndex() {
   
   if (role === 'PARTNER') {
     return <Navigate to="/partner/workspace" replace />;
+  }
+  if (role === 'STORE') {
+    return <Navigate to="/store/catalogue" replace />;
   }
   return <Catalogue />;
 }

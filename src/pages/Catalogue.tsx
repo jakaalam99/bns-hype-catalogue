@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { ProductWithImages } from '../types/product';
-import { Search, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { Search, SlidersHorizontal, Loader2, Plus, Minus, ShoppingCart, CheckCircle2, Sparkles } from 'lucide-react';
 import { formatIDR } from '../lib/utils';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useBasket } from '../features/catalogue/BasketContext';
-import { Plus, Minus, ShoppingCart, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../features/auth/useAuthStore';
 
 export const Catalogue = () => {
@@ -16,6 +15,7 @@ export const Catalogue = () => {
     const { addToBasket } = useBasket();
     const [quantities, setQuantities] = useState<Record<string, number>>({});
     const [addedProducts, setAddedProducts] = useState<Set<string>>(new Set());
+    const [activeBadges, setActiveBadges] = useState<Set<string>>(new Set());
     const user = useAuthStore(state => state.user);
     const requestorRoles = ['putus', 'BELI_PUTUS', 'ONLINE', 'CONSIGNMENT', 'STORE', 'EXPO', 'MKT', 'VM'];
     const isRequestor = requestorRoles.some(r => r.toUpperCase() === (user?.user_metadata?.role || '').toUpperCase());
@@ -157,8 +157,42 @@ export const Catalogue = () => {
 
             if (pageNumber === 1 || products.length === 0) {
                 setProducts(data as any);
+                // Fetch Active Badges only once
+                try {
+                    const productIds = (data || []).map((p: any) => p.id);
+                    if (productIds.length > 0) {
+                        const { data: activeBadgeData, error: badgeError } = await supabase
+                            .from('new_drops_items')
+                            .select('product_id, batch:new_drops_batches!inner(is_badge_active)')
+                            .eq('batch.is_badge_active', true)
+                            .in('product_id', productIds);
+                        
+                        if (!badgeError && activeBadgeData) {
+                            setActiveBadges(new Set(activeBadgeData.map(b => b.product_id)));
+                        }
+                    }
+                } catch (err) {
+                    console.error("Badge fetch error (possibly missing column):", err);
+                }
             } else {
                 setProducts(prev => [...prev, ...(data as any)]);
+                // Update active badges for new items
+                try {
+                    const productIds = (data || []).map((p: any) => p.id);
+                    if (productIds.length > 0) {
+                        const { data: activeBadgeData, error: badgeError } = await supabase
+                            .from('new_drops_items')
+                            .select('product_id, batch:new_drops_batches!inner(is_badge_active)')
+                            .eq('batch.is_badge_active', true)
+                            .in('product_id', productIds);
+                        
+                        if (!badgeError && activeBadgeData) {
+                            setActiveBadges(prev => new Set([...Array.from(prev), ...activeBadgeData.map(b => b.product_id)]));
+                        }
+                    }
+                } catch (err) {
+                    console.error("Badge fetch error:", err);
+                }
             }
 
             setHasMore(data.length === (to - from + 1));
@@ -281,6 +315,11 @@ export const Catalogue = () => {
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-slate-400 font-sans font-medium tracking-widest text-sm">
                                             BNS HYPE
+                                        </div>
+                                    )}
+                                    {activeBadges.has(product.id) && (
+                                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-amber-500 text-white rounded-md text-[8px] font-black uppercase tracking-tighter flex items-center gap-1 shadow-lg animate-pulse">
+                                            <Sparkles size={8} /> New Drop
                                         </div>
                                     )}
 

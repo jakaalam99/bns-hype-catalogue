@@ -1,8 +1,16 @@
+export interface WarehouseGroup {
+    id: string;
+    name: string;
+    created_at: string;
+}
+
 export interface Warehouse {
     id: string;
     name: string;
     is_visible: boolean;
+    group_id?: string;
     created_at: string;
+    group?: WarehouseGroup;
 }
 
 export interface WarehouseStock {

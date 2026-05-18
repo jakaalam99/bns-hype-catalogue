@@ -4,13 +4,14 @@ import { supabase } from '../lib/supabase';
 import type { ProductWithImages } from '../types/product';
 import type { Warehouse } from '../types/warehouse';
 import { formatIDR } from '../lib/utils';
-import { Loader2, ArrowLeft, ZoomIn, Plus, Minus, ShoppingCart, CheckCircle2, MapPin } from 'lucide-react';
+import { Loader2, ArrowLeft, ZoomIn, Plus, Minus, ShoppingCart, CheckCircle2, MapPin, Sparkles } from 'lucide-react';
 import { useStoreSettings } from '../features/catalogue/StoreSettingsContext';
 import { useBasket } from '../features/catalogue/BasketContext';
 import { useAuthStore } from '../features/auth/useAuthStore';
 
-export const CatalogueProduct = () => {
-    const { id } = useParams<{ id: string }>();
+export const CatalogueProduct = ({ isModal = false, modalProductId = null }: { isModal?: boolean; modalProductId?: string | null }) => {
+    const { id: urlId } = useParams<{ id: string }>();
+    const id = modalProductId || urlId;
     const navigate = useNavigate();
     const { settings } = useStoreSettings();
     const [product, setProduct] = useState<ProductWithImages | null>(null);
@@ -21,6 +22,8 @@ export const CatalogueProduct = () => {
     const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
     const [quantity, setQuantity] = useState(1);
     const [addedToBasket, setAddedToBasket] = useState(false);
+    const [quota, setQuota] = useState<number | null>(null);
+    const [isInShipment, setIsInShipment] = useState<boolean | null>(null);
     const { addToBasket } = useBasket();
     const user = useAuthStore(state => state.user);
     const userRole = (user?.user_metadata?.role || '').toUpperCase();
@@ -61,7 +64,7 @@ export const CatalogueProduct = () => {
                 setSelectedImage(sortedImages[0].image_url);
             }
 
-            // Fetch available stock locations (warehouses)
+            // Fetch available stock locations (warehouses) grouped by their Warehouse Group
             const { data: stockData, error: stockError } = await supabase
                 .from('warehouse_stocks')
                 .select(`
@@ -69,7 +72,11 @@ export const CatalogueProduct = () => {
                     warehouses!inner (
                         id,
                         name,
-                        is_visible
+                        is_visible,
+                        warehouse_groups (
+                            id,
+                            name
+                        )
                     )
                 `)
                 .eq('product_id', productId)
@@ -78,20 +85,95 @@ export const CatalogueProduct = () => {
             if (stockError) {
                 console.error("Error fetching stock data:", stockError);
             } else if (stockData) {
-                // Map to unique, visible warehouses
-                const visibleWarehouses = stockData
-                    .map(s => s.warehouses as unknown as Warehouse)
-                    .filter(w => w.is_visible);
+                // Map to unique warehouse group names
+                const groupMap = new Map();
+                stockData.forEach(s => {
+                    const group = (s.warehouses as any)?.warehouse_groups;
+                    if (group && group.name) {
+                        groupMap.set(group.id, group.name);
+                    }
+                });
                 
-                // Deduplicate just in case
-                const uniqueWarehouses = Array.from(new Map(visibleWarehouses.map(w => [w.id, w])).values());
-                setAvailableWarehouses(uniqueWarehouses);
+                const uniqueGroups = Array.from(groupMap.entries()).map(([id, name]) => ({ id, name }));
+                setAvailableWarehouses(uniqueGroups as any);
+            }
+
+            if (data && userRole === 'STORE') {
+                const inShipment = await checkIfInShipment(data.sku);
+                if (inShipment) {
+                    await fetchStoreQuota(data.sku);
+                }
             }
 
         } catch (error) {
             console.error('Error fetching product details:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const checkIfInShipment = async (sku: string) => {
+        try {
+            const { data } = await supabase
+                .from('shipment_items')
+                .select('id')
+                .eq('sku', sku)
+                .limit(1);
+            const inShipment = !!(data && data.length > 0);
+            setIsInShipment(inShipment);
+            return inShipment;
+        } catch (err) {
+            console.error("Error checking shipment status:", err);
+            setIsInShipment(false);
+            return false;
+        }
+    };
+
+    const fetchStoreQuota = async (sku: string) => {
+        try {
+            // 1. Get Store ID and Name
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('store_id, store:destination_locations(name)')
+                .eq('id', user?.id)
+                .single();
+            
+            if (!profileData?.store_id || !(profileData.store as any)?.name) return;
+            const storeName = (profileData.store as any).name;
+            const storeId = profileData.store_id;
+
+            // 2. Fetch Total Allocations
+            const { data: allocations } = await supabase
+                .from('shipment_store_allocations')
+                .select('quantity, shipment_item:shipment_items!inner(sku)')
+                .eq('store_name', storeName)
+                .eq('shipment_item.sku', sku);
+            
+            // 3. Fetch Total Orders
+            const { data: orders } = await supabase
+                .from('store_order_items')
+                .select('quantity, order:store_orders!inner(status, store_id)')
+                .eq('order.store_id', storeId)
+                .eq('product.sku', sku); // Wait, this needs a join or specific filter
+
+            // Let's refine the orders fetch
+            const { data: orderItems } = await supabase
+                .from('store_order_items')
+                .select('quantity, product:products!inner(sku), order:store_orders!inner(status, store_id)')
+                .eq('order.store_id', storeId)
+                .eq('order.status', 'Pending') // Or any status except Rejected? 
+                // Let's count everything not Rejected
+                .not('order.status', 'eq', 'Rejected')
+                .eq('product.sku', sku);
+
+            const totalAlloc = allocations?.reduce((sum, a) => sum + a.quantity, 0) || 0;
+            const totalOrdered = orderItems?.reduce((sum, o) => sum + o.quantity, 0) || 0;
+            
+            const remaining = totalAlloc - totalOrdered;
+            setQuota(remaining);
+            if (remaining <= 0) setQuantity(0);
+        } catch (err) {
+            console.error("Error fetching quota:", err);
         }
     };
 
@@ -129,13 +211,15 @@ export const CatalogueProduct = () => {
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in-up">
-            <button
-                onClick={() => navigate(-1)}
-                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-8 transition-colors group"
-            >
-                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                Back to Catalogue
-            </button>
+            {!isModal && (
+                <button
+                    onClick={() => navigate(-1)}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-8 transition-colors group"
+                >
+                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                    Back to Catalogue
+                </button>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 {/* Image Gallery */}
@@ -220,7 +304,7 @@ export const CatalogueProduct = () => {
                     </div>
 
                     {availableWarehouses.length > 0 && (
-                        <div className="mb-8 p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                        <div className="mb-4 p-4 bg-slate-50 border border-slate-100 rounded-xl">
                             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                                 <MapPin size={14} className="text-indigo-500" /> Available In:
                             </h3>
@@ -231,6 +315,35 @@ export const CatalogueProduct = () => {
                                     </span>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {userRole === 'STORE' && isInShipment === true && quota !== null && (
+                        <div className={`mb-8 p-6 rounded-2xl border-2 flex items-center justify-between shadow-premium animate-pulse-subtle ${
+                            quota > 0 
+                            ? 'bg-indigo-50 border-indigo-100' 
+                            : 'bg-red-50 border-red-100'
+                        }`}>
+                            <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                                    quota > 0 ? 'bg-indigo-600 text-white' : 'bg-red-600 text-white'
+                                }`}>
+                                    <Sparkles size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Your Store Allocation</p>
+                                    <h3 className={`text-2xl font-black ${quota > 0 ? 'text-indigo-900' : 'text-red-900'}`}>
+                                        {quota} {quota === 1 ? 'Unit' : 'Units'} Available
+                                    </h3>
+                                </div>
+                            </div>
+                            {quota <= 0 && (
+                                <div className="text-right">
+                                    <span className="px-3 py-1 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full">
+                                        Quota Exceeded
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -254,8 +367,9 @@ export const CatalogueProduct = () => {
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden h-14 bg-white">
                                     <button
-                                        onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                                        className="px-4 hover:bg-slate-50 text-slate-500 transition-colors"
+                                        onClick={() => setQuantity(prev => prev > 1 ? prev - 1 : prev)}
+                                        className="px-4 hover:bg-slate-50 text-slate-500 transition-colors disabled:opacity-30"
+                                        disabled={quantity <= (quota === 0 ? 0 : 1)}
                                     >
                                         <Minus size={18} />
                                     </button>
@@ -263,16 +377,21 @@ export const CatalogueProduct = () => {
                                         {quantity}
                                     </div>
                                     <button
-                                        onClick={() => setQuantity(prev => prev + 1)}
-                                        className="px-4 hover:bg-slate-50 text-slate-500 transition-colors"
+                                        onClick={() => {
+                                            const maxQuota = quota !== null ? quota : 999;
+                                            setQuantity(prev => Math.min(maxQuota, prev + 1));
+                                        }}
+                                        className="px-4 hover:bg-slate-50 text-slate-500 transition-colors disabled:opacity-30"
+                                        disabled={quota !== null && quantity >= quota}
                                     >
                                         <Plus size={18} />
                                     </button>
                                 </div>
                                 <button
                                     onClick={handleAddToBasket}
+                                    disabled={quantity <= 0}
                                     className={`flex-[2] flex items-center justify-center gap-2 font-bold py-4 rounded-xl transition shadow-premium active:scale-[0.98] ${addedToBasket ? 'bg-emerald-500 text-white' : 'bg-zinc-950 text-white hover:bg-zinc-800'
-                                        }`}
+                                        } disabled:opacity-30 disabled:grayscale`}
                                 >
                                     {addedToBasket ? (
                                         <>

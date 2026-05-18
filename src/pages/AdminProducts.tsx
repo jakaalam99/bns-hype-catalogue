@@ -209,6 +209,8 @@ export const AdminProducts = () => {
                 discount_price: product.discount_price ?? '',
                 discount_percentage: derivedPercentage,
                 discount_amount: derivedAmount,
+                ip: product.ip || '',
+                series_category: product.series_category || '',
                 'Final Price': product.discount_price !== null ? product.discount_price : product.price,
                 'Programs Applied to': appliedPrograms
             };
@@ -405,6 +407,12 @@ export const AdminProducts = () => {
                                 <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('price')}>
                                     Price {renderSortIcon('price')}
                                 </th>
+                                <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('ip')}>
+                                    IP {renderSortIcon('ip')}
+                                </th>
+                                <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('series_category')}>
+                                    Series {renderSortIcon('series_category')}
+                                </th>
                                 <th className="px-6 py-4 cursor-pointer hover:bg-slate-100" onClick={() => toggleSort('total_stock')}>
                                     Stock {renderSortIcon('total_stock')}
                                 </th>
@@ -485,6 +493,12 @@ export const AdminProducts = () => {
                                                 ) : (
                                                     <span className="font-medium text-slate-900">{formatIDR(product.price)}</span>
                                                 )}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-500 font-mono">
+                                                {product.ip || '-'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-500">
+                                                {product.series_category || '-'}
                                             </td>
                                             <td className="px-6 py-4 text-sm">
                                                 <div className="flex items-center gap-2">

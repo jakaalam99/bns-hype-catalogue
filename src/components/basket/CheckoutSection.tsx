@@ -29,42 +29,131 @@ export const CheckoutSection = () => {
             return;
         }
         
-        // Ensure destination location is chosen either globally or per item.
-        // We will default to selectedLocation for all items if they don't have one specific to them.
-        items.forEach(i => {
-            const dest = (i as any).destination_location || selectedLocation;
-            if (!dest) throw new Error(`Missing Destination Location for SKU ${i.sku}`);
-        });
-
-        if (!selectedLocation && items.some(i => !(i as any).destination_location)) {
-            setError('Please select a Default Destination Location for your items.');
-            return;
-        }
+        const role = (user?.user_metadata?.role || '').toUpperCase();
+        const isStore = role === 'STORE';
 
         setLoading(true);
         setError(null);
 
         try {
-            const rpcPayload = items.map(item => ({
-                product_id: item.id,
-                sku: item.sku,
-                product_name: item.name,
-                qty: item.quantity,
-                destination_location: (item as any).destination_location || selectedLocation
-            }));
+            if (isStore) {
+                // 1. Get linked store from profile
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('store_id')
+                    .eq('id', user?.id)
+                    .single();
+                
+                if (!profileData || !profileData.store_id) throw new Error("Account not linked to a store. Please contact MD.");
+                const storeId = profileData.store_id;
 
-            const { error: rpcError } = await supabase.rpc('submit_inventory_request', {
-                p_requestor_id: user?.id,
-                p_requestor_role: user?.user_metadata?.role || 'BELI_PUTUS',
-                p_items: rpcPayload
-            });
+                // 2. NEW: Quota Validation Logic
+                // Fetch the store name first
+                const { data: storeInfo } = await supabase
+                    .from('destination_locations')
+                    .select('name')
+                    .eq('id', storeId)
+                    .single();
+                
+                if (!storeInfo) throw new Error("Could not find store information.");
+                const storeName = storeInfo.name;
+                const skus = items.map(i => i.sku);
 
-            if (rpcError) throw rpcError;
+                // Fetch all shipment SKUs to see which ones need quota check
+                const { data: shipmentSkusData } = await supabase
+                    .from('shipment_items')
+                    .select('sku')
+                    .in('sku', skus);
+                const shipmentSkusSet = new Set(shipmentSkusData?.map(s => s.sku) || []);
 
-            // Success
-            clearBasket();
-            navigate('/requests'); // Go to status page
-            
+                // Fetch all allocations for these SKUs for this store
+                const { data: allocations } = await supabase
+                    .from('shipment_store_allocations')
+                    .select('quantity, shipment_item:shipment_items!inner(sku)')
+                    .eq('store_name', storeName)
+                    .in('shipment_item.sku', skus);
+                
+                // Fetch all confirmed orders for these SKUs for this store
+                const { data: orderItemsData } = await supabase
+                    .from('store_order_items')
+                    .select('quantity, product:products!inner(sku), order:store_orders!inner(status, store_id)')
+                    .eq('order.store_id', storeId)
+                    .not('order.status', 'eq', 'Rejected')
+                    .in('product.sku', skus);
+                
+                // Calculate remaining for each
+                const quotaMap: Record<string, number> = {};
+                allocations?.forEach((a: any) => {
+                    const s = a.shipment_item?.sku;
+                    if (s) quotaMap[s] = (quotaMap[s] || 0) + a.quantity;
+                });
+                orderItemsData?.forEach((o: any) => {
+                    const s = o.product?.sku;
+                    if (s) quotaMap[s] = (quotaMap[s] || 0) - o.quantity;
+                });
+
+                // Check each item in basket
+                for (const item of items) {
+                    // ONLY check quota if the product exists in ANY shipment
+                    if (shipmentSkusSet.has(item.sku)) {
+                        const remaining = quotaMap[item.sku] || 0;
+                        if (item.quantity > remaining) {
+                            throw new Error(`Quota exceeded for ${item.name} (${item.sku}). Remaining quota: ${remaining}`);
+                        }
+                    }
+                }
+
+                // 3. Create Order via RPC (Handles atomic creation + stock deduction)
+                const rpcItems = items.map(item => ({
+                    product_id: item.id,
+                    quantity: item.quantity,
+                    unit_price: (item as any).price || (item as any).discount_price || 0
+                }));
+
+                console.log("Submitting order with items:", rpcItems);
+
+                const { data: orderId, error: rpcError } = await supabase.rpc('submit_store_order', {
+                    p_store_id: storeId,
+                    p_user_id: user?.id,
+                    p_items: rpcItems
+                });
+                
+                if (rpcError) throw rpcError;
+
+                clearBasket();
+                navigate('/store/orders');
+            } else {
+                // Original flow for other roles
+                items.forEach(i => {
+                    const dest = (i as any).destination_location || selectedLocation;
+                    if (!dest) throw new Error(`Missing Destination Location for SKU ${i.sku}`);
+                });
+
+                if (!selectedLocation && items.some(i => !(i as any).destination_location)) {
+                    setError('Please select a Default Destination Location for your items.');
+                    setLoading(false);
+                    return;
+                }
+
+                const rpcPayload = items.map(item => ({
+                    product_id: item.id,
+                    sku: item.sku,
+                    product_name: item.name,
+                    qty: item.quantity,
+                    destination_location: (item as any).destination_location || selectedLocation
+                }));
+
+                const { error: rpcError } = await supabase.rpc('submit_inventory_request', {
+                    p_requestor_id: user?.id,
+                    p_requestor_role: user?.user_metadata?.role || 'BELI_PUTUS',
+                    p_items: rpcPayload
+                });
+
+                if (rpcError) throw rpcError;
+
+                clearBasket();
+                navigate('/requests');
+            }
         } catch (err: any) {
             console.error("Submission failed:", err);
             setError(err.message || 'Failed to submit request. Please try again or contact administrator.');
